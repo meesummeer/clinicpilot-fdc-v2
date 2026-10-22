@@ -21,12 +21,15 @@ export default function PatientDrawer({ patient, onClose, onSaved }) {
       address: address.trim() || null,
       gender: gender || null,
     };
-    const { error } = isEdit
+    const { data, error } = isEdit
       ? await supabase.from('patients').update(payload).eq('id', patient.id)
-      : await supabase.from('patients').insert(payload);
+      : await supabase.from('patients').insert(payload).select().single();
     setSaving(false);
     if (error) { setError(error.message); return; }
-    onSaved();
+    // On create, hand the newly inserted row (with its DB-assigned mr_no)
+    // back to the caller so flows like PatientPicker's "+ New Patient" can
+    // select it immediately. Callers that don't need it just ignore the arg.
+    onSaved(data);
   }
 
   return (

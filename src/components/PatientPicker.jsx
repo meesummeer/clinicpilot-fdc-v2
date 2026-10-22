@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase, fetchAllRows } from '../lib/supabaseClient';
+import PatientDrawer from './PatientDrawer';
 
 // Searchable patient select by MR number, name, or phone. Used by Billings'
 // "+ Add Invoice" flow, which (unlike the per-patient Billing tab) has no
@@ -8,6 +9,7 @@ export default function PatientPicker({ onSelect }) {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [addingPatient, setAddingPatient] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -47,7 +49,14 @@ export default function PatientPicker({ onSelect }) {
       />
       {loading && <p className="patientSmall">Loading patients…</p>}
       {!loading && search.trim() && filtered.length === 0 && (
-        <div className="empty-state">No matching patients.</div>
+        <div className="empty-state">
+          No matching patients.
+          <div className="empty-state-action">
+            <button type="button" className="btn btn-secondary btn-small" onClick={() => setAddingPatient(true)}>
+              + New Patient
+            </button>
+          </div>
+        </div>
       )}
       {filtered.length > 0 && (
         <div className="patient-picker-list">
@@ -62,6 +71,17 @@ export default function PatientPicker({ onSelect }) {
             </button>
           ))}
         </div>
+      )}
+
+      {addingPatient && (
+        <PatientDrawer
+          patient={null}
+          onClose={() => setAddingPatient(false)}
+          onSaved={(newPatient) => {
+            setAddingPatient(false);
+            if (newPatient) onSelect(newPatient);
+          }}
+        />
       )}
     </div>
   );

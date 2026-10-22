@@ -1614,6 +1614,10 @@ body {
   color: var(--muted);
 }
 
+.empty-state-action {
+  margin-top: 12px;
+}
+
 .form-field {
   display: flex;
   flex-direction: column;
