@@ -47,7 +47,7 @@ export default function App() {
   }
 
   const isAdmin = profile.role === 'admin';
-  const canSeeExpenses = isAdmin || profile.has_expenses_access === true;
+  const canSeeExpenses = isAdmin;
   const navClass = ({ isActive }) => 'nav-btn' + (isActive ? ' active' : '');
 
   return (

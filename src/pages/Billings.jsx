@@ -77,20 +77,22 @@ export default function Billings({ profile }) {
         </div>
       </div>
 
-      <div className="billing-kpis card">
-        <div className="kpi-card">
-          <span className="kpi-label">Total Invoiced</span>
-          <span className="kpi-value">{loading ? '—' : formatMoney(kpis.totalInvoiced)}</span>
+      {isAdmin && (
+        <div className="billing-kpis card">
+          <div className="kpi-card">
+            <span className="kpi-label">Total Invoiced</span>
+            <span className="kpi-value">{loading ? '—' : formatMoney(kpis.totalInvoiced)}</span>
+          </div>
+          <div className="kpi-card">
+            <span className="kpi-label">Total Collected</span>
+            <span className="kpi-value">{loading ? '—' : formatMoney(kpis.totalCollected)}</span>
+          </div>
+          <div className="kpi-card">
+            <span className="kpi-label">Outstanding</span>
+            <span className="kpi-value">{loading ? '—' : formatMoney(kpis.totalOutstanding)}</span>
+          </div>
         </div>
-        <div className="kpi-card">
-          <span className="kpi-label">Total Collected</span>
-          <span className="kpi-value">{loading ? '—' : formatMoney(kpis.totalCollected)}</span>
-        </div>
-        <div className="kpi-card">
-          <span className="kpi-label">Outstanding</span>
-          <span className="kpi-value">{loading ? '—' : formatMoney(kpis.totalOutstanding)}</span>
-        </div>
-      </div>
+      )}
 
       <div className="card billing-table-card">
         <div className="tabs">
