@@ -23,7 +23,6 @@ export default function EditInvoiceModal({ invoice, onClose, onSaved }) {
   const [otherProcedure, setOtherProcedure] = useState(knownProcedure ? '' : (invoice.procedure || ''));
   const [cost, setCost] = useState(String(invoice.cost ?? ''));
   const [discount, setDiscount] = useState(String(invoice.discount ?? ''));
-  const [labCost, setLabCost] = useState(String(invoice.lab_cost ?? ''));
   const [notes, setNotes] = useState(invoice.notes || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -41,7 +40,6 @@ export default function EditInvoiceModal({ invoice, onClose, onSaved }) {
         procedure: finalProcedure,
         cost: Number(cost) || 0,
         discount: Number(discount) || 0,
-        lab_cost: Number(labCost) || 0,
         notes: notes.trim() || null,
         updated_at: new Date().toISOString(),
       })
@@ -81,10 +79,6 @@ export default function EditInvoiceModal({ invoice, onClose, onSaved }) {
           <div className="form-field">
             <label>Discount</label>
             <input type="number" className="billing-select" value={discount} onChange={(e) => setDiscount(e.target.value)} min="0" step="1" />
-          </div>
-          <div className="form-field">
-            <label>Lab Cost</label>
-            <input type="number" className="billing-select" value={labCost} onChange={(e) => setLabCost(e.target.value)} min="0" step="1" />
           </div>
           <div className="form-field">
             <label>Notes</label>

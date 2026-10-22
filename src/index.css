@@ -1713,3 +1713,102 @@ body {
   font-size: 0.75rem;
   color: var(--muted);
 }
+
+/* =========================================================
+   Add Invoice from Billings, multi-service line items,
+   and the invoice view/print/WhatsApp modal.
+   ========================================================= */
+
+.billing-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-secondary.active {
+  background: rgba(0, 150, 136, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.patient-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.patient-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.add-invoice-patient-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+.invoice-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.invoice-line-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invoice-line-cost {
+  max-width: 140px;
+}
+
+.invoice-line-remove {
+  flex: 0 0 auto;
+  min-width: 36px;
+  padding: 0;
+}
+
+.invoice-line-total {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--muted);
+  align-self: flex-end;
+}
+
+.invoice-line-items-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.invoice-line-items-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0;
+}

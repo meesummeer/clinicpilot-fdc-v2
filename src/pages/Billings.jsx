@@ -3,6 +3,9 @@ import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import { formatDate, formatMoney, currentMonthKarachi, monthRangeKarachi, PAYMENT_METHOD_LABELS } from '../lib/format';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvoice } from '../lib/billing';
 import EditInvoiceModal from '../components/EditInvoiceModal';
+import PatientPicker from '../components/PatientPicker';
+import InvoiceForm from '../components/InvoiceForm';
+import InvoiceViewModal from '../components/InvoiceViewModal';
 
 export default function Billings({ profile }) {
   const isAdmin = profile?.role === 'admin';
@@ -13,6 +16,9 @@ export default function Billings({ profile }) {
   const [month, setMonth] = useState(currentMonthKarachi());
   const [view, setView] = useState('invoices');
   const [editInvoice, setEditInvoice] = useState(null);
+  const [viewInvoice, setViewInvoice] = useState(null);
+  const [addInvoiceOpen, setAddInvoiceOpen] = useState(false);
+  const [addInvoicePatient, setAddInvoicePatient] = useState(null);
 
   useEffect(() => {
     load();
@@ -21,7 +27,7 @@ export default function Billings({ profile }) {
   async function load() {
     setLoading(true);
     const [{ data: inv, error: invErr }, { data: pay, error: payErr }] = await Promise.all([
-      fetchAllRows(() => supabase.from('invoices').select('*, patients(name, mr_no)').order('created_at', { ascending: false })),
+      fetchAllRows(() => supabase.from('invoices').select('*, patients(name, mr_no, phone)').order('created_at', { ascending: false })),
       fetchAllRows(() => supabase.from('payments').select('*, patients(name, mr_no), invoices(procedure)').order('paid_at', { ascending: false })),
     ]);
     if (invErr) console.error(invErr);
@@ -75,6 +81,11 @@ export default function Billings({ profile }) {
             All Time
           </button>
         </div>
+        <div className="toolbar-right">
+          <button type="button" className="btn btn-primary" onClick={() => { setAddInvoicePatient(null); setAddInvoiceOpen(true); }}>
+            + Add Invoice
+          </button>
+        </div>
       </div>
 
       {isAdmin && (
@@ -107,6 +118,7 @@ export default function Billings({ profile }) {
                 <tr>
                   <th>Date</th><th>MR No</th><th>Patient Name</th><th>Procedure</th>
                   <th>Invoice Total</th><th>Paid</th><th>Due</th><th>Status</th>
+                  <th></th>
                   {isAdmin && <th></th>}
                 </tr>
               </thead>
@@ -126,6 +138,11 @@ export default function Billings({ profile }) {
                       <td>{formatMoney(paid)}</td>
                       <td>{formatMoney(due)}</td>
                       <td><span className={`statusBadge status-${status}`}>{status}</span></td>
+                      <td>
+                        <button type="button" className="btn btn-secondary btn-small" onClick={() => setViewInvoice(inv)}>
+                          View Invoice
+                        </button>
+                      </td>
                       {isAdmin && (
                         <td>
                           <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
@@ -137,7 +154,7 @@ export default function Billings({ profile }) {
                   );
                 })}
                 {!loading && periodInvoices.length === 0 && (
-                  <tr><td colSpan={isAdmin ? 9 : 8} className="empty-state">No invoices in this period.</td></tr>
+                  <tr><td colSpan={isAdmin ? 10 : 9} className="empty-state">No invoices in this period.</td></tr>
                 )}
               </tbody>
             </table>
@@ -184,6 +201,45 @@ export default function Billings({ profile }) {
           onClose={() => setEditInvoice(null)}
           onSaved={() => { setEditInvoice(null); load(); }}
         />
+      )}
+
+      {viewInvoice && (
+        <InvoiceViewModal
+          invoice={viewInvoice}
+          payments={paymentsByInvoice.get(viewInvoice.id) || []}
+          onClose={() => setViewInvoice(null)}
+        />
+      )}
+
+      {addInvoiceOpen && (
+        <div className="modal" onClick={() => setAddInvoiceOpen(false)}>
+          <div className="modal-content modal-content--billing" onClick={(e) => e.stopPropagation()}>
+            <h2 className="payment-modal-title">Add Invoice</h2>
+            {!addInvoicePatient && (
+              <PatientPicker onSelect={(p) => setAddInvoicePatient(p)} />
+            )}
+            {addInvoicePatient && (
+              <>
+                <div className="add-invoice-patient-chip">
+                  <span>
+                    <strong>{addInvoicePatient.name}</strong> · MR #{addInvoicePatient.mr_no}
+                  </span>
+                  <button type="button" className="btn btn-secondary btn-small" onClick={() => setAddInvoicePatient(null)}>
+                    Change Patient
+                  </button>
+                </div>
+                <InvoiceForm
+                  patientId={addInvoicePatient.id}
+                  profile={profile}
+                  onSaved={() => { setAddInvoiceOpen(false); setAddInvoicePatient(null); load(); }}
+                />
+              </>
+            )}
+            <div className="payment-actions-stack">
+              <button type="button" className="btn btn-secondary" onClick={() => setAddInvoiceOpen(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

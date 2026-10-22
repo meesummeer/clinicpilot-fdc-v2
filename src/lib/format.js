@@ -86,6 +86,19 @@ export const EXPENSE_CATEGORY_LABELS = {
   material: 'Material',
 };
 
+// Normalizes a Pakistani phone number into the digits-only international
+// form wa.me needs (e.g. "0333 2268732" -> "923332268732"). Returns null
+// when there's nothing usable to build a link from.
+export function toWhatsAppNumber(phone) {
+  if (!phone) return null;
+  const digits = String(phone).replace(/\D/g, '');
+  if (!digits) return null;
+  if (digits.startsWith('92')) return digits;
+  if (digits.startsWith('0')) return '92' + digits.slice(1);
+  if (digits.length === 10) return '92' + digits; // local number missing its leading 0
+  return digits;
+}
+
 // 'YYYY-MM-DD' for "today" in Asia/Karachi, regardless of the viewer's machine.
 export function todayKarachi() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: KHI_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());

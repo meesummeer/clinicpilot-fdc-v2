@@ -105,6 +105,16 @@ export default function PatientProfile({ profile }) {
                         {Number(inv.lab_cost) > 0 && ` · Lab ${formatMoney(inv.lab_cost)}`}
                         {' · '}Net {formatMoney(net)}
                       </div>
+                      {Array.isArray(inv.line_items) && inv.line_items.length > 0 && (
+                        <ul className="invoice-line-items-list">
+                          {inv.line_items.map((l, i) => (
+                            <li key={i}>
+                              <span>{l.name}</span>
+                              <span>{formatMoney(l.cost)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                       {inv.notes && <div className="invoice-notes-line">{inv.notes}</div>}
                     </div>
                     <span className={`statusBadge status-${status}`}>{status}</span>
