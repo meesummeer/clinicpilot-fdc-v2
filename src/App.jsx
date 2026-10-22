@@ -50,7 +50,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-top">
           <div className="sidebar-brand">
-            <img src="/fdc-logo.png" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8, background: '#fff', padding: 4 }} />
+            <img src={`${import.meta.env.BASE_URL}fdc-logo.png`} style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8, background: '#fff', padding: 4 }} />
             <div className="sidebar-brand__text">
               <span className="sidebar-brand__title">ClinicPilot</span>
               <span className="sidebar-brand__subtitle">Faseeh Dental Clinic</span>

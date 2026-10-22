@@ -3,9 +3,14 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  // Custom domain deploy (app.faseehdentalclinic.com), not a GitHub project page,
-  // so assets are served from the root — unlike YMDC's '/clinicpilot-ymdc/'.
-  base: '/',
+  // Right now this deploys to the default GitHub Pages project URL
+  // (meesummeer.github.io/clinicpilot-fdc-v2/), which needs that path as
+  // the base. Once the custom domain (app.faseehdentalclinic.com) is live,
+  // assets should be served from the root instead — set a repo Actions
+  // *variable* (not secret) named VITE_BASE_PATH to "/" at that point
+  // (Settings -> Secrets and variables -> Actions -> Variables) and add a
+  // CNAME file; no code change needed here.
+  base: process.env.VITE_BASE_PATH || '/clinicpilot-fdc-v2/',
   build: {
     outDir: 'dist',
   },
