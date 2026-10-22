@@ -108,6 +108,15 @@ function InvoiceDocument({ invoice, payments }) {
   );
 }
 
+// "<patient name> - <mr_no> - FDC", shared by the PNG download and the
+// print/PDF title. Strips characters that are invalid in macOS/Windows filenames.
+function invoiceFileBase(invoice) {
+  const safe = (v) => String(v ?? '').replace(/[\/\\:*?"<>|\x00-\x1f]/g, '').replace(/\s+/g, ' ').trim();
+  const name = safe(invoice.patients?.name) || 'Patient';
+  const mrNo = safe(invoice.patients?.mr_no) || 'invoice';
+  return `${name} - ${mrNo} - FDC`;
+}
+
 export default function InvoiceViewModal({ invoice, payments, onClose }) {
   const previewRef = useRef(null);
   const [working, setWorking] = useState(false);
@@ -119,11 +128,17 @@ export default function InvoiceViewModal({ invoice, payments, onClose }) {
   }, [onClose]);
 
   function handlePrint() {
+    // The browser uses document.title as the default "Save as PDF" filename.
+    const originalTitle = document.title;
+    document.title = invoiceFileBase(invoice);
     document.body.classList.add('printing-invoice');
     window.print();
     // afterprint doesn't fire reliably in every browser (notably some
     // in-app/embedded webviews), so also clear on a short fallback timer.
-    const clear = () => document.body.classList.remove('printing-invoice');
+    const clear = () => {
+      document.body.classList.remove('printing-invoice');
+      document.title = originalTitle;
+    };
     window.addEventListener('afterprint', clear, { once: true });
     setTimeout(clear, 2000);
   }
@@ -137,12 +152,8 @@ export default function InvoiceViewModal({ invoice, payments, onClose }) {
       if (blob) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        // Strip characters that are invalid in macOS/Windows filenames.
-        const safe = (v) => String(v ?? '').replace(/[\/\\:*?"<>|\x00-\x1f]/g, '').replace(/\s+/g, ' ').trim();
-        const name = safe(invoice.patients?.name) || 'Patient';
-        const mrNo = safe(invoice.patients?.mr_no) || 'invoice';
         a.href = url;
-        a.download = `${name} - ${mrNo} - FDC.png`;
+        a.download = `${invoiceFileBase(invoice)}.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();
