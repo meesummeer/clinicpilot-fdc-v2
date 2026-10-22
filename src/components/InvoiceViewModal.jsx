@@ -137,9 +137,12 @@ export default function InvoiceViewModal({ invoice, payments, onClose }) {
       if (blob) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        const mrNo = invoice.patients?.mr_no ?? 'invoice';
+        // Strip characters that are invalid in macOS/Windows filenames.
+        const safe = (v) => String(v ?? '').replace(/[\/\\:*?"<>|\x00-\x1f]/g, '').replace(/\s+/g, ' ').trim();
+        const name = safe(invoice.patients?.name) || 'Patient';
+        const mrNo = safe(invoice.patients?.mr_no) || 'invoice';
         a.href = url;
-        a.download = `invoice-${mrNo}-${invoice.created_at?.slice(0, 10) || 'copy'}.png`;
+        a.download = `${name} - ${mrNo} - FDC.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -153,7 +156,8 @@ export default function InvoiceViewModal({ invoice, payments, onClose }) {
 
     const waNumber = toWhatsAppNumber(invoice.patients?.phone);
     if (waNumber) {
-      window.open(`https://wa.me/${waNumber}`, '_blank', 'noopener');
+      const text = encodeURIComponent("Hi! Thank you for your visit at Faseeh Dental Clinic. Here's your invoice. Thanks!");
+      window.open(`https://wa.me/${waNumber}?text=${text}`, '_blank', 'noopener');
     } else {
       alert('Invoice image downloaded. This patient has no phone number on file to open WhatsApp.');
     }
