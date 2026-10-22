@@ -80,6 +80,10 @@ export const EXPENSE_CATEGORY_LABELS = {
   general: 'General',
   salary: 'Salary',
   utility: 'Utility Bills',
+  miscellaneous: 'Miscellaneous',
+  doctors_share: "Doctor's Share",
+  lab: 'Lab',
+  material: 'Material',
 };
 
 // 'YYYY-MM-DD' for "today" in Asia/Karachi, regardless of the viewer's machine.

@@ -33,7 +33,15 @@ export default function Expenses({ profile }) {
   );
 
   const totals = useMemo(() => {
-    const byCategory = { general: 0, salary: 0, utility: 0 };
+    const byCategory = {
+      general: 0,
+      salary: 0,
+      utility: 0,
+      miscellaneous: 0,
+      doctors_share: 0,
+      lab: 0,
+      material: 0,
+    };
     let total = 0;
     for (const x of periodExpenses) {
       const amt = Number(x.amount) || 0;
@@ -82,6 +90,22 @@ export default function Expenses({ profile }) {
         <div className="kpi-card">
           <span className="kpi-label">Utility Bills</span>
           <span className="kpi-value">{loading ? '—' : formatMoney(totals.utility)}</span>
+        </div>
+        <div className="kpi-card">
+          <span className="kpi-label">Miscellaneous</span>
+          <span className="kpi-value">{loading ? '—' : formatMoney(totals.miscellaneous)}</span>
+        </div>
+        <div className="kpi-card">
+          <span className="kpi-label">Doctor's Share</span>
+          <span className="kpi-value">{loading ? '—' : formatMoney(totals.doctors_share)}</span>
+        </div>
+        <div className="kpi-card">
+          <span className="kpi-label">Lab</span>
+          <span className="kpi-value">{loading ? '—' : formatMoney(totals.lab)}</span>
+        </div>
+        <div className="kpi-card">
+          <span className="kpi-label">Material</span>
+          <span className="kpi-value">{loading ? '—' : formatMoney(totals.material)}</span>
         </div>
       </div>
 

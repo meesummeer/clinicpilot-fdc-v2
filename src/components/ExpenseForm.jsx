@@ -40,6 +40,10 @@ export default function ExpenseForm({ profile, onSaved }) {
           <option value="general">General</option>
           <option value="salary">Salary</option>
           <option value="utility">Utility Bills</option>
+          <option value="miscellaneous">Miscellaneous</option>
+          <option value="doctors_share">Doctor's Share</option>
+          <option value="lab">Lab</option>
+          <option value="material">Material</option>
         </select>
         <input
           type="text"
