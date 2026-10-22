@@ -1707,3 +1707,9 @@ body {
   font-size: 1rem;
   font-weight: 700;
 }
+
+.hub-chart-caption {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}

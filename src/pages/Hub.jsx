@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, PieChart, Pie, Legend } from 'recharts';
 import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import { formatDate, formatMoney, startOfMonthKarachi, todayKarachi, lastNMonthsKarachi, monthRangeKarachi } from '../lib/format';
 
@@ -118,6 +118,26 @@ export default function Hub({ profile }) {
     }
     return Array.from(byProc.values()).sort((a, b) => b.count - a.count);
   }, [periodInvoices]);
+
+  // ---- Revenue breakdown pie (same selected period as the KPI cards above) ----
+  // "Material Cost" = general-category expenses (what the quick-add form
+  // below inserts); "Expenses" = salary + utility bills. The three slices
+  // always sum to Collected (gross revenue) by construction.
+  const pieData = useMemo(() => {
+    const materialCost = periodExpenses
+      .filter((x) => x.category === 'general')
+      .reduce((s, x) => s + (Number(x.amount) || 0), 0);
+    const otherExpenses = periodExpenses
+      .filter((x) => x.category !== 'general')
+      .reduce((s, x) => s + (Number(x.amount) || 0), 0);
+    const netProfit = totals.collected - materialCost - otherExpenses;
+    return [
+      { name: 'Material Cost', value: materialCost, color: '#f0b429' },
+      { name: 'Expenses', value: otherExpenses, color: '#ef4444' },
+      { name: 'Net Profit', value: netProfit, color: '#009688' },
+    ];
+  }, [periodExpenses, totals.collected]);
+  const pieHasLoss = pieData.some((d) => d.value < 0);
 
   // ---- Fixed last-3-months chart (independent of the date filter above) ----
   const chartData = useMemo(() => {
@@ -267,6 +287,41 @@ export default function Hub({ profile }) {
             )}
           </table>
         </div>
+      </div>
+
+      <div className="card hub-chart-card">
+        <h2 className="hub-chart-title">Revenue Breakdown</h2>
+        {loading ? (
+          <div className="empty-state">Loading…</div>
+        ) : totals.collected <= 0 ? (
+          <div className="empty-state">No revenue collected in this period yet.</div>
+        ) : pieHasLoss ? (
+          <div className="empty-state">
+            Expenses exceeded what was collected this period ({formatMoney(Math.abs(totals.net))} loss) — the pie
+            breakdown needs a profit to show cleanly. Check the KPI cards above instead.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={95}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
+              </Pie>
+              <Tooltip formatter={(v) => formatMoney(v)} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
+        <p className="hub-chart-caption">
+          Material Cost = General-category expenses (incl. the quick-add below). Expenses = Salary + Utility Bills.
+        </p>
       </div>
 
       <div className="card hub-chart-card">
