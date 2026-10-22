@@ -8,7 +8,7 @@ auth, and role-based access (admin vs. CSR) enforced by Row-Level Security
 ## Stack
 
 - React 18 + Vite, deployed to GitHub Pages via GitHub Actions
-- Supabase: Postgres + Auth + RLS (project ref `kxdqaqrqcoqouirjesdg`, region `ap-south-1`)
+- Supabase: Postgres + Auth + RLS (project ref `pipddzentbstvatiioqm`, region `ap-south-1`)
 - No build step talks to Firebase or Google Sheets — this is a clean break
 
 ## Local development
