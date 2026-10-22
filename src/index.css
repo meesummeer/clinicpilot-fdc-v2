@@ -396,6 +396,15 @@ body {
   filter: brightness(1.05);
 }
 
+.btn-dark {
+  background: var(--sidebar-bg);
+  color: #fff;
+}
+
+.btn-dark:hover {
+  filter: brightness(1.2);
+}
+
 .btn-small {
   min-height: 36px;
   padding: 0 10px;

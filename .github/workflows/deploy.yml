@@ -32,6 +32,13 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH }}
 
+      # GitHub Pages has no server-side SPA fallback: a hard refresh on
+      # e.g. /clinicpilot-fdc-v2/billings would 404 without this. Pages
+      # serves 404.html's content (while keeping the real URL in the
+      # address bar) for any unmatched path, so react-router then boots
+      # normally and reads the real path itself.
+      - run: cp dist/index.html dist/404.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

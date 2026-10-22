@@ -127,7 +127,7 @@ export default function PatientProfile({ profile }) {
                       </button>
                     )}
                     {isAdmin && (
-                      <button type="button" className="btn btn-secondary btn-small" onClick={() => setEditInvoice(inv)}>
+                      <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
                         Edit Invoice
                       </button>
                     )}

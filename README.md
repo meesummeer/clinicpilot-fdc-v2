@@ -28,8 +28,8 @@ Pushes to `main` build and deploy to GitHub Pages automatically
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
-Until the custom domain (`app.faseehdentalclinic.com`) is pointed here, the
-app is live at the default GitHub Pages project URL:
+Until the custom domain (`clinicpilot.faseehdentalclinic.com`) is pointed
+here, the app is live at the default GitHub Pages project URL:
 `https://meesummeer.github.io/clinicpilot-fdc-v2/` (Settings → Pages →
 Source: GitHub Actions). `vite.config.js` defaults `base` to
 `/clinicpilot-fdc-v2/` to match that. When the custom domain goes live,

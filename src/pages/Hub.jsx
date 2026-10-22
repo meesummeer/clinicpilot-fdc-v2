@@ -12,7 +12,6 @@ export default function Hub({ profile }) {
   const [dateFrom, setDateFrom] = useState(startOfMonthKarachi());
   const [dateTo, setDateTo] = useState(todayKarachi());
 
-  const [addOpen, setAddOpen] = useState(false);
   const [costDate, setCostDate] = useState(todayKarachi());
   const [costDescription, setCostDescription] = useState('');
   const [costAmount, setCostAmount] = useState('');
@@ -56,7 +55,6 @@ export default function Hub({ profile }) {
     if (error) { setCostError(error.message); return; }
     setCostDescription('');
     setCostAmount('');
-    setAddOpen(false);
     load();
   }
 
@@ -75,6 +73,9 @@ export default function Hub({ profile }) {
     () => payments.filter((p) => p.paid_at >= periodStartIso && p.paid_at <= periodEndIso),
     [payments, periodStartIso, periodEndIso]
   );
+  // Every expense in the period — material costs added here land in the
+  // same `expenses` table the full Expenses page reads, so this total
+  // (and the KPI card below) already reflects them the moment they're added.
   const periodExpenses = useMemo(
     () => expenses.filter((x) => x.expense_date >= dateFrom && x.expense_date <= dateTo),
     [expenses, dateFrom, dateTo]
@@ -135,24 +136,6 @@ export default function Hub({ profile }) {
 
   return (
     <section id="hubSection" className="pane active">
-      <div className="card hub-chart-card">
-        <h2 className="hub-chart-title">Net P/L — Last 3 Months</h2>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="label" />
-            <YAxis tickFormatter={(v) => formatMoney(v)} width={90} />
-            <Tooltip formatter={(v) => formatMoney(v)} />
-            <Bar dataKey="net" radius={[6, 6, 0, 0]}>
-              <LabelList dataKey="net" position="top" formatter={(v) => formatMoney(v)} />
-              {chartData.map((row, i) => (
-                <Cell key={i} fill={row.net < 0 ? '#ef4444' : '#f0b429'} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
       <div className="card billing-toolbar toolbar-row">
         <div className="toolbar-left">
           <label className="sort-toggle">
@@ -163,41 +146,8 @@ export default function Hub({ profile }) {
             To
             <input type="date" className="input-month" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </label>
-          <button type="button" className="btn btn-secondary btn-small" onClick={() => setAddOpen((v) => !v)}>
-            {addOpen ? 'Cancel' : '+ Add Material Cost'}
-          </button>
         </div>
       </div>
-
-      {addOpen && (
-        <div className="card">
-          <form className="billing-add-form" onSubmit={handleAddCost}>
-            {costError && <div className="error-text">{costError}</div>}
-            <div className="billing-add-row">
-              <input type="date" className="billing-select" value={costDate} onChange={(e) => setCostDate(e.target.value)} />
-              <input
-                type="text"
-                className="billing-select"
-                placeholder="Description (e.g. dental material restock)"
-                value={costDescription}
-                onChange={(e) => setCostDescription(e.target.value)}
-              />
-              <input
-                type="number"
-                className="billing-select"
-                placeholder="Amount"
-                value={costAmount}
-                onChange={(e) => setCostAmount(e.target.value)}
-                min="0"
-                step="1"
-              />
-              <button type="submit" className="btn btn-primary" disabled={costSaving}>
-                {costSaving ? 'Adding…' : 'Add Cost'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       <div className="billing-kpis card">
         <div className="kpi-card">
@@ -259,6 +209,82 @@ export default function Hub({ profile }) {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="card billing-table-card">
+        <h2 className="hub-section-title">Expenses</h2>
+        <form className="billing-add-form" onSubmit={handleAddCost}>
+          {costError && <div className="error-text">{costError}</div>}
+          <div className="billing-add-row">
+            <input type="date" className="billing-select" value={costDate} onChange={(e) => setCostDate(e.target.value)} />
+            <input
+              type="text"
+              className="billing-select"
+              placeholder="Description (e.g. dental material restock)"
+              value={costDescription}
+              onChange={(e) => setCostDescription(e.target.value)}
+            />
+            <input
+              type="number"
+              className="billing-select"
+              placeholder="Amount"
+              value={costAmount}
+              onChange={(e) => setCostAmount(e.target.value)}
+              min="0"
+              step="1"
+            />
+            <button type="submit" className="btn btn-primary" disabled={costSaving}>
+              {costSaving ? 'Adding…' : '+ Add Material Cost'}
+            </button>
+          </div>
+        </form>
+
+        <div className="table-scroll">
+          <table className="billing-table">
+            <thead>
+              <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr>
+            </thead>
+            <tbody>
+              {periodExpenses.map((x) => (
+                <tr key={x.id}>
+                  <td>{formatDate(`${x.expense_date}T12:00:00+05:00`)}</td>
+                  <td style={{ textTransform: 'capitalize' }}>{x.category}</td>
+                  <td>{x.description || '—'}</td>
+                  <td>{formatMoney(x.amount)}</td>
+                </tr>
+              ))}
+              {!loading && periodExpenses.length === 0 && (
+                <tr><td colSpan={4} className="empty-state">No expenses in this period.</td></tr>
+              )}
+            </tbody>
+            {periodExpenses.length > 0 && (
+              <tfoot>
+                <tr>
+                  <td colSpan={3} style={{ fontWeight: 700 }}>Total</td>
+                  <td style={{ fontWeight: 700 }}>{formatMoney(totals.spent)}</td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+      </div>
+
+      <div className="card hub-chart-card">
+        <h2 className="hub-chart-title">Net P/L — Last 3 Months</h2>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="label" />
+            <YAxis tickFormatter={(v) => formatMoney(v)} width={90} />
+            <Tooltip formatter={(v) => formatMoney(v)} />
+            <Bar dataKey="net" radius={[6, 6, 0, 0]}>
+              <LabelList dataKey="net" position="top" formatter={(v) => formatMoney(v)} />
+              {chartData.map((row, i) => (
+                <Cell key={i} fill={row.net < 0 ? '#ef4444' : '#f0b429'} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </section>
   );

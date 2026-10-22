@@ -126,7 +126,7 @@ export default function Billings({ profile }) {
                       <td><span className={`statusBadge status-${status}`}>{status}</span></td>
                       {isAdmin && (
                         <td>
-                          <button type="button" className="btn btn-secondary btn-small" onClick={() => setEditInvoice(inv)}>
+                          <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
                             Edit
                           </button>
                         </td>
