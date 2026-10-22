@@ -75,3 +75,36 @@ export const APPOINTMENT_STATUS_LABELS = {
   fulfilled: 'Fulfilled',
   cancelled: 'Cancelled',
 };
+
+export const EXPENSE_CATEGORY_LABELS = {
+  general: 'General',
+  salary: 'Salary',
+  utility: 'Utility Bills',
+};
+
+// 'YYYY-MM-DD' for "today" in Asia/Karachi, regardless of the viewer's machine.
+export function todayKarachi() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: KHI_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+
+// 'YYYY-MM-DD' for the first day of the current month, in Asia/Karachi.
+export function startOfMonthKarachi() {
+  return `${currentMonthKarachi()}-01`;
+}
+
+// Last n calendar months including the current one, oldest first, as
+// [{ yyyyMm: '2026-08', label: 'Aug 2026' }, ...], anchored on Asia/Karachi.
+export function lastNMonthsKarachi(n) {
+  const [yStr, mStr] = currentMonthKarachi().split('-');
+  let y = Number(yStr);
+  let m = Number(mStr);
+  const months = [];
+  for (let i = n - 1; i >= 0; i--) {
+    let my = y, mm = m - i;
+    while (mm <= 0) { mm += 12; my -= 1; }
+    const yyyyMm = `${my}-${String(mm).padStart(2, '0')}`;
+    const label = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' }).format(new Date(`${yyyyMm}-01T12:00:00Z`));
+    months.push({ yyyyMm, label });
+  }
+  return months;
+}

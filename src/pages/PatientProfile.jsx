@@ -6,6 +6,7 @@ import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvo
 import PatientDrawer from '../components/PatientDrawer';
 import InvoiceForm from '../components/InvoiceForm';
 import PaymentModal from '../components/PaymentModal';
+import EditInvoiceModal from '../components/EditInvoiceModal';
 
 export default function PatientProfile({ profile }) {
   const { id } = useParams();
@@ -19,6 +20,7 @@ export default function PatientProfile({ profile }) {
   const [tab, setTab] = useState('profile');
   const [editOpen, setEditOpen] = useState(false);
   const [payModalInvoice, setPayModalInvoice] = useState(null);
+  const [editInvoice, setEditInvoice] = useState(null);
 
   useEffect(() => {
     load();
@@ -125,6 +127,11 @@ export default function PatientProfile({ profile }) {
                       </button>
                     )}
                     {isAdmin && (
+                      <button type="button" className="btn btn-secondary btn-small" onClick={() => setEditInvoice(inv)}>
+                        Edit Invoice
+                      </button>
+                    )}
+                    {isAdmin && (
                       <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeleteInvoice(inv.id)}>
                         Delete Invoice
                       </button>
@@ -160,6 +167,14 @@ export default function PatientProfile({ profile }) {
           profile={profile}
           onClose={() => setPayModalInvoice(null)}
           onSaved={() => { setPayModalInvoice(null); load(); }}
+        />
+      )}
+
+      {editInvoice && (
+        <EditInvoiceModal
+          invoice={editInvoice}
+          onClose={() => setEditInvoice(null)}
+          onSaved={() => { setEditInvoice(null); load(); }}
         />
       )}
     </div>

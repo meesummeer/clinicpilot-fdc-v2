@@ -2,14 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import { formatDate, formatMoney, currentMonthKarachi, monthRangeKarachi, PAYMENT_METHOD_LABELS } from '../lib/format';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvoice } from '../lib/billing';
+import EditInvoiceModal from '../components/EditInvoiceModal';
 
-export default function Billings() {
+export default function Billings({ profile }) {
+  const isAdmin = profile?.role === 'admin';
   const [invoices, setInvoices] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [allTime, setAllTime] = useState(false);
   const [month, setMonth] = useState(currentMonthKarachi());
   const [view, setView] = useState('invoices');
+  const [editInvoice, setEditInvoice] = useState(null);
 
   useEffect(() => {
     load();
@@ -102,6 +105,7 @@ export default function Billings() {
                 <tr>
                   <th>Date</th><th>MR No</th><th>Patient Name</th><th>Procedure</th>
                   <th>Invoice Total</th><th>Paid</th><th>Due</th><th>Status</th>
+                  {isAdmin && <th></th>}
                 </tr>
               </thead>
               <tbody>
@@ -120,11 +124,18 @@ export default function Billings() {
                       <td>{formatMoney(paid)}</td>
                       <td>{formatMoney(due)}</td>
                       <td><span className={`statusBadge status-${status}`}>{status}</span></td>
+                      {isAdmin && (
+                        <td>
+                          <button type="button" className="btn btn-secondary btn-small" onClick={() => setEditInvoice(inv)}>
+                            Edit
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
                 {!loading && periodInvoices.length === 0 && (
-                  <tr><td colSpan={8} className="empty-state">No invoices in this period.</td></tr>
+                  <tr><td colSpan={isAdmin ? 9 : 8} className="empty-state">No invoices in this period.</td></tr>
                 )}
               </tbody>
             </table>
@@ -164,6 +175,14 @@ export default function Billings() {
           </div>
         )}
       </div>
+
+      {editInvoice && (
+        <EditInvoiceModal
+          invoice={editInvoice}
+          onClose={() => setEditInvoice(null)}
+          onSaved={() => { setEditInvoice(null); load(); }}
+        />
+      )}
     </section>
   );
 }

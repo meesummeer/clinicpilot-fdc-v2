@@ -1682,3 +1682,19 @@ body {
   font-size: 0.8125rem;
   color: var(--muted);
 }
+
+/* ----- Hub / Expenses ----- */
+.kpi-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.hub-chart-card {
+  margin-bottom: 20px;
+}
+
+.hub-chart-title,
+.hub-section-title {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  font-weight: 700;
+}
