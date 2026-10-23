@@ -37,6 +37,13 @@ export default function Billings({ profile }) {
     setLoading(false);
   }
 
+  async function handleDeleteInvoice(invoiceId) {
+    if (!window.confirm('Delete this invoice and its payments?')) return;
+    const { error } = await supabase.from('invoices').delete().eq('id', invoiceId);
+    if (error) { alert(error.message); return; }
+    load();
+  }
+
   const paymentsByInvoice = useMemo(() => groupPaymentsByInvoice(payments), [payments]);
 
   const [periodStart, periodEnd] = useMemo(() => {
@@ -120,6 +127,7 @@ export default function Billings({ profile }) {
                   <th>Invoice Total</th><th>Paid</th><th>Due</th><th>Status</th>
                   <th></th>
                   <th></th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -148,11 +156,16 @@ export default function Billings({ profile }) {
                           Edit
                         </button>
                       </td>
+                      <td>
+                        <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeleteInvoice(inv.id)}>
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
                 {!loading && periodInvoices.length === 0 && (
-                  <tr><td colSpan={10} className="empty-state">No invoices in this period.</td></tr>
+                  <tr><td colSpan={11} className="empty-state">No invoices in this period.</td></tr>
                 )}
               </tbody>
             </table>
