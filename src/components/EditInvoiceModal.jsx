@@ -16,7 +16,8 @@ const PROCEDURES = [
   'Other',
 ];
 
-// Admin-only. RLS backs this regardless of frontend gating (admin update invoices).
+// Available to all staff (admin and CSR). RLS backs this regardless of
+// frontend gating (staff update invoices); every edit is still audit-logged.
 export default function EditInvoiceModal({ invoice, onClose, onSaved }) {
   const knownProcedure = PROCEDURES.includes(invoice.procedure);
   const [procedure, setProcedure] = useState(knownProcedure ? invoice.procedure : 'Other');

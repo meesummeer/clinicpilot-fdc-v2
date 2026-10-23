@@ -10,7 +10,8 @@ const STATUS_COLOR_CLASS = {
 };
 
 const MONTH_FMT = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Karachi' });
-const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const TIME_FMT = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Karachi' });
+const DAY_LABELS =['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function karachiToday() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -124,7 +125,7 @@ export default function Home({ profile }) {
                     onClick={() => setModalAppt(a)}
                     title={`${a.patients?.name || 'Unknown'} — ${a.procedure || ''}`}
                   >
-                    {a.patients?.name || 'Unknown'}
+                    {a.patients?.name || 'Unknown'} — {TIME_FMT.format(new Date(a.scheduled_at))}
                   </div>
                 ))}
               </div>

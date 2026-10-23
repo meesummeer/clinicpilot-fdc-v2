@@ -119,7 +119,7 @@ export default function Billings({ profile }) {
                   <th>Date</th><th>MR No</th><th>Patient Name</th><th>Procedure</th>
                   <th>Invoice Total</th><th>Paid</th><th>Due</th><th>Status</th>
                   <th></th>
-                  {isAdmin && <th></th>}
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -143,18 +143,16 @@ export default function Billings({ profile }) {
                           View Invoice
                         </button>
                       </td>
-                      {isAdmin && (
-                        <td>
-                          <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
-                            Edit
-                          </button>
-                        </td>
-                      )}
+                      <td>
+                        <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
+                          Edit
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
                 {!loading && periodInvoices.length === 0 && (
-                  <tr><td colSpan={isAdmin ? 10 : 9} className="empty-state">No invoices in this period.</td></tr>
+                  <tr><td colSpan={10} className="empty-state">No invoices in this period.</td></tr>
                 )}
               </tbody>
             </table>

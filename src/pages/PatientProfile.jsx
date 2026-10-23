@@ -136,16 +136,12 @@ export default function PatientProfile({ profile }) {
                         Record Payment
                       </button>
                     )}
-                    {isAdmin && (
-                      <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
-                        Edit Invoice
-                      </button>
-                    )}
-                    {isAdmin && (
-                      <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeleteInvoice(inv.id)}>
-                        Delete Invoice
-                      </button>
-                    )}
+                    <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
+                      Edit Invoice
+                    </button>
+                    <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeleteInvoice(inv.id)}>
+                      Delete Invoice
+                    </button>
                   </div>
                 </div>
               );

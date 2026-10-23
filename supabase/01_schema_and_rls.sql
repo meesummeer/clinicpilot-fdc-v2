@@ -61,7 +61,7 @@ create type payment_method as enum ('cash', 'card', 'bank_transfer');
 
 create table payments (
   id uuid primary key default gen_random_uuid(),
-  invoice_id uuid not null references invoices(id) on delete restrict,
+  invoice_id uuid not null references invoices(id) on delete cascade,
   patient_id uuid not null references patients(id) on delete restrict,
   legacy_payment_id text unique,
   amount numeric(12,2) not null,
@@ -138,8 +138,8 @@ create policy "admin delete patients" on patients for delete using (current_staf
 
 create policy "staff read invoices" on invoices for select using (auth.uid() is not null);
 create policy "staff insert invoices" on invoices for insert with check (auth.uid() is not null);
-create policy "admin update invoices" on invoices for update using (current_staff_role() = 'admin');
-create policy "admin delete invoices" on invoices for delete using (current_staff_role() = 'admin');
+create policy "staff update invoices" on invoices for update using (auth.uid() is not null);
+create policy "staff delete invoices" on invoices for delete using (auth.uid() is not null);
 
 create policy "staff read payments" on payments for select using (auth.uid() is not null);
 create policy "staff insert payments" on payments for insert with check (auth.uid() is not null);
