@@ -1,20 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { todayKarachi } from '../lib/format';
-
-const PROCEDURE_SUGGESTIONS = [
-  'Consultation',
-  'Scaling & Polishing',
-  'Filling',
-  'Root Canal Treatment',
-  'Extraction',
-  'Crown',
-  'Bridge',
-  'Denture',
-  'Implant',
-  'Whitening',
-  'X-Ray',
-];
+import { PROCEDURE_SUGGESTIONS } from '../lib/procedures';
 
 let lineItemSeq = 0;
 function newLine() {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import { formatDate } from '../lib/format';
+import { PROCEDURE_SUGGESTIONS } from '../lib/procedures';
 
 const STATUS_COLOR_CLASS = {
   scheduled: 'status-yellow',
@@ -229,7 +230,10 @@ function ApptModal({ appt, patients, profile, onClose, onSaved }) {
           </div>
           <label>
             Procedure
-            <input type="text" value={procedure} onChange={(e) => setProcedure(e.target.value)} />
+            <input type="text" list="appt-procedure-suggestions" value={procedure} onChange={(e) => setProcedure(e.target.value)} />
+            <datalist id="appt-procedure-suggestions">
+              {PROCEDURE_SUGGESTIONS.map((p) => <option key={p} value={p} />)}
+            </datalist>
           </label>
           <label>
             Date
