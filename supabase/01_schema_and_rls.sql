@@ -134,7 +134,7 @@ create policy "admin manages profiles" on staff_profiles for all
 create policy "staff read patients" on patients for select using (auth.uid() is not null);
 create policy "staff insert patients" on patients for insert with check (auth.uid() is not null);
 create policy "staff update patients" on patients for update using (auth.uid() is not null);
-create policy "admin delete patients" on patients for delete using (current_staff_role() = 'admin');
+create policy "staff delete patients" on patients for delete using (auth.uid() is not null);
 
 create policy "staff read invoices" on invoices for select using (auth.uid() is not null);
 create policy "staff insert invoices" on invoices for insert with check (auth.uid() is not null);
@@ -143,8 +143,8 @@ create policy "staff delete invoices" on invoices for delete using (auth.uid() i
 
 create policy "staff read payments" on payments for select using (auth.uid() is not null);
 create policy "staff insert payments" on payments for insert with check (auth.uid() is not null);
-create policy "admin update payments" on payments for update using (current_staff_role() = 'admin');
-create policy "admin delete payments" on payments for delete using (current_staff_role() = 'admin');
+create policy "staff update payments" on payments for update using (auth.uid() is not null);
+create policy "staff delete payments" on payments for delete using (auth.uid() is not null);
 
 create policy "staff manage appointments" on appointments for all
   using (auth.uid() is not null) with check (auth.uid() is not null);
