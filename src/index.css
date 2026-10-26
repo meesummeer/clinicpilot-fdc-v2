@@ -1692,8 +1692,15 @@ body {
 .payment-list-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.8125rem;
   color: var(--muted);
+}
+
+.payment-list-row-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ----- Hub / Expenses ----- */

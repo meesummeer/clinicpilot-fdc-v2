@@ -7,6 +7,7 @@ import PatientDrawer from '../components/PatientDrawer';
 import InvoiceForm from '../components/InvoiceForm';
 import PaymentModal from '../components/PaymentModal';
 import EditInvoiceModal from '../components/EditInvoiceModal';
+import EditPaymentModal from '../components/EditPaymentModal';
 
 export default function PatientProfile({ profile }) {
   const { id } = useParams();
@@ -21,6 +22,7 @@ export default function PatientProfile({ profile }) {
   const [editOpen, setEditOpen] = useState(false);
   const [payModalInvoice, setPayModalInvoice] = useState(null);
   const [editInvoice, setEditInvoice] = useState(null);
+  const [editPayment, setEditPayment] = useState(null);
 
   useEffect(() => {
     load();
@@ -53,6 +55,13 @@ export default function PatientProfile({ profile }) {
   async function handleDeleteInvoice(invoiceId) {
     if (!window.confirm('Delete this invoice and its payments?')) return;
     const { error } = await supabase.from('invoices').delete().eq('id', invoiceId);
+    if (error) { alert(error.message); return; }
+    load();
+  }
+
+  async function handleDeletePayment(paymentId) {
+    if (!window.confirm('Delete this payment?')) return;
+    const { error } = await supabase.from('payments').delete().eq('id', paymentId);
     if (error) { alert(error.message); return; }
     load();
   }
@@ -125,7 +134,19 @@ export default function PatientProfile({ profile }) {
                       {invPayments.map((p) => (
                         <div className="payment-list-row" key={p.id}>
                           <span>{formatDate(p.paid_at)} · {PAYMENT_METHOD_LABELS[p.payment_method] || p.payment_method}</span>
-                          <span>{formatMoney(p.amount)}</span>
+                          <span className="payment-list-row-end">
+                            {formatMoney(p.amount)}
+                            {isAdmin && (
+                              <button type="button" className="btn btn-dark btn-small" onClick={() => setEditPayment(p)}>
+                                Edit
+                              </button>
+                            )}
+                            {isAdmin && (
+                              <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeletePayment(p.id)}>
+                                Delete
+                              </button>
+                            )}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -181,6 +202,14 @@ export default function PatientProfile({ profile }) {
           invoice={editInvoice}
           onClose={() => setEditInvoice(null)}
           onSaved={() => { setEditInvoice(null); load(); }}
+        />
+      )}
+
+      {editPayment && (
+        <EditPaymentModal
+          payment={editPayment}
+          onClose={() => setEditPayment(null)}
+          onSaved={() => { setEditPayment(null); load(); }}
         />
       )}
     </div>

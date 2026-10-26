@@ -3,6 +3,7 @@ import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import { formatDate, formatMoney, currentMonthKarachi, monthRangeKarachi, PAYMENT_METHOD_LABELS } from '../lib/format';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvoice } from '../lib/billing';
 import EditInvoiceModal from '../components/EditInvoiceModal';
+import EditPaymentModal from '../components/EditPaymentModal';
 import PatientPicker from '../components/PatientPicker';
 import InvoiceForm from '../components/InvoiceForm';
 import InvoiceViewModal from '../components/InvoiceViewModal';
@@ -16,6 +17,7 @@ export default function Billings({ profile }) {
   const [month, setMonth] = useState(currentMonthKarachi());
   const [view, setView] = useState('invoices');
   const [editInvoice, setEditInvoice] = useState(null);
+  const [editPayment, setEditPayment] = useState(null);
   const [viewInvoice, setViewInvoice] = useState(null);
   const [addInvoiceOpen, setAddInvoiceOpen] = useState(false);
   const [addInvoicePatient, setAddInvoicePatient] = useState(null);
@@ -40,6 +42,13 @@ export default function Billings({ profile }) {
   async function handleDeleteInvoice(invoiceId) {
     if (!window.confirm('Delete this invoice and its payments?')) return;
     const { error } = await supabase.from('invoices').delete().eq('id', invoiceId);
+    if (error) { alert(error.message); return; }
+    load();
+  }
+
+  async function handleDeletePayment(paymentId) {
+    if (!window.confirm('Delete this payment?')) return;
+    const { error } = await supabase.from('payments').delete().eq('id', paymentId);
     if (error) { alert(error.message); return; }
     load();
   }
@@ -179,6 +188,8 @@ export default function Billings({ profile }) {
                 <tr>
                   <th>Date</th><th>MR No</th><th>Patient Name</th><th>Procedure</th>
                   <th>Amount</th><th>Mode</th><th>Invoice Status</th>
+                  {isAdmin && <th></th>}
+                  {isAdmin && <th></th>}
                 </tr>
               </thead>
               <tbody>
@@ -194,11 +205,25 @@ export default function Billings({ profile }) {
                       <td>{formatMoney(p.amount)}</td>
                       <td>{PAYMENT_METHOD_LABELS[p.payment_method] || p.payment_method}</td>
                       <td>{inv ? <span className={`statusBadge status-${status}`}>{status}</span> : '—'}</td>
+                      {isAdmin && (
+                        <td>
+                          <button type="button" className="btn btn-dark btn-small" onClick={() => setEditPayment(p)}>
+                            Edit
+                          </button>
+                        </td>
+                      )}
+                      {isAdmin && (
+                        <td>
+                          <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeletePayment(p.id)}>
+                            Delete
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
                 {!loading && periodPayments.length === 0 && (
-                  <tr><td colSpan={7} className="empty-state">No payments in this period.</td></tr>
+                  <tr><td colSpan={isAdmin ? 9 : 7} className="empty-state">No payments in this period.</td></tr>
                 )}
               </tbody>
             </table>
@@ -211,6 +236,14 @@ export default function Billings({ profile }) {
           invoice={editInvoice}
           onClose={() => setEditInvoice(null)}
           onSaved={() => { setEditInvoice(null); load(); }}
+        />
+      )}
+
+      {editPayment && (
+        <EditPaymentModal
+          payment={editPayment}
+          onClose={() => setEditPayment(null)}
+          onSaved={() => { setEditPayment(null); load(); }}
         />
       )}
 
