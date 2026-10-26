@@ -188,8 +188,8 @@ export default function Billings({ profile }) {
                 <tr>
                   <th>Date</th><th>MR No</th><th>Patient Name</th><th>Procedure</th>
                   <th>Amount</th><th>Mode</th><th>Invoice Status</th>
-                  {isAdmin && <th></th>}
-                  {isAdmin && <th></th>}
+                  <th></th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -205,25 +205,21 @@ export default function Billings({ profile }) {
                       <td>{formatMoney(p.amount)}</td>
                       <td>{PAYMENT_METHOD_LABELS[p.payment_method] || p.payment_method}</td>
                       <td>{inv ? <span className={`statusBadge status-${status}`}>{status}</span> : '—'}</td>
-                      {isAdmin && (
-                        <td>
-                          <button type="button" className="btn btn-dark btn-small" onClick={() => setEditPayment(p)}>
-                            Edit
-                          </button>
-                        </td>
-                      )}
-                      {isAdmin && (
-                        <td>
-                          <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeletePayment(p.id)}>
-                            Delete
-                          </button>
-                        </td>
-                      )}
+                      <td>
+                        <button type="button" className="btn btn-dark btn-small" onClick={() => setEditPayment(p)}>
+                          Edit
+                        </button>
+                      </td>
+                      <td>
+                        <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeletePayment(p.id)}>
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
                 {!loading && periodPayments.length === 0 && (
-                  <tr><td colSpan={isAdmin ? 9 : 7} className="empty-state">No payments in this period.</td></tr>
+                  <tr><td colSpan={9} className="empty-state">No payments in this period.</td></tr>
                 )}
               </tbody>
             </table>

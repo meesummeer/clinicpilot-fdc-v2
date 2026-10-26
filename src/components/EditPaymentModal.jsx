@@ -5,8 +5,8 @@ function karachiDate(value) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
 }
 
-// Admin-only, for refunds or mistaken entries. RLS backs this regardless of
-// frontend gating (admin update payments); every edit is still audit-logged.
+// For refunds or mistaken entries. Available to all staff (admin and CSR);
+// every edit is still audit-logged.
 export default function EditPaymentModal({ payment, onClose, onSaved }) {
   const [amount, setAmount] = useState(String(payment.amount ?? ''));
   const [method, setMethod] = useState(payment.payment_method || 'cash');

@@ -1,5 +1,14 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { useEffect, useState } from 'react';
+import { supabase, fetchAllRows } from '../lib/supabaseClient';
+
+function distinctValues(rows, field) {
+  const seen = new Set();
+  for (const r of rows) {
+    const v = r[field]?.trim();
+    if (v) seen.add(v);
+  }
+  return [...seen].sort((a, b) => a.localeCompare(b));
+}
 
 export default function PatientDrawer({ patient, onClose, onSaved }) {
   const isEdit = Boolean(patient);
@@ -9,6 +18,24 @@ export default function PatientDrawer({ patient, onClose, onSaved }) {
   const [gender, setGender] = useState(patient?.gender || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  // Areas repeat across patients and families share a phone, so offer
+  // existing values as suggestions. Still free text, not a locked dropdown.
+  const [phoneSuggestions, setPhoneSuggestions] = useState([]);
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await fetchAllRows(() =>
+        supabase.from('patients').select('phone, address').or('phone.not.is.null,address.not.is.null').order('id')
+      );
+      if (error) console.error(error);
+      if (cancelled) return;
+      setPhoneSuggestions(distinctValues(data || [], 'phone'));
+      setAddressSuggestions(distinctValues(data || [], 'address'));
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   async function handleSave(e) {
     e.preventDefault();
@@ -49,11 +76,17 @@ export default function PatientDrawer({ patient, onClose, onSaved }) {
             </div>
             <div className="form-field">
               <label>Phone</label>
-              <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <input type="text" list="patient-phone-suggestions" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <datalist id="patient-phone-suggestions">
+                {phoneSuggestions.map((v) => <option key={v} value={v} />)}
+              </datalist>
             </div>
             <div className="form-field">
               <label>Address</label>
-              <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <input type="text" list="patient-address-suggestions" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <datalist id="patient-address-suggestions">
+                {addressSuggestions.map((v) => <option key={v} value={v} />)}
+              </datalist>
             </div>
             <div className="form-field">
               <label>Gender</label>

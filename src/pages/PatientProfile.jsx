@@ -12,7 +12,6 @@ import EditPaymentModal from '../components/EditPaymentModal';
 export default function PatientProfile({ profile }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isAdmin = profile?.role === 'admin';
 
   const [patient, setPatient] = useState(null);
   const [invoices, setInvoices] = useState([]);
@@ -136,16 +135,12 @@ export default function PatientProfile({ profile }) {
                           <span>{formatDate(p.paid_at)} · {PAYMENT_METHOD_LABELS[p.payment_method] || p.payment_method}</span>
                           <span className="payment-list-row-end">
                             {formatMoney(p.amount)}
-                            {isAdmin && (
-                              <button type="button" className="btn btn-dark btn-small" onClick={() => setEditPayment(p)}>
-                                Edit
-                              </button>
-                            )}
-                            {isAdmin && (
-                              <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeletePayment(p.id)}>
-                                Delete
-                              </button>
-                            )}
+                            <button type="button" className="btn btn-dark btn-small" onClick={() => setEditPayment(p)}>
+                              Edit
+                            </button>
+                            <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeletePayment(p.id)}>
+                              Delete
+                            </button>
                           </span>
                         </div>
                       ))}
@@ -172,9 +167,7 @@ export default function PatientProfile({ profile }) {
 
         <div className="pane-foot">
           <button type="button" className="btn btn-secondary" onClick={() => setEditOpen(true)}>Edit Patient</button>
-          {isAdmin && (
-            <button type="button" className="btn btn-danger" onClick={handleDeletePatient}>Delete Patient</button>
-          )}
+          <button type="button" className="btn btn-danger" onClick={handleDeletePatient}>Delete Patient</button>
         </div>
       </div>
 
