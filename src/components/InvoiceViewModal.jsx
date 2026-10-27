@@ -4,6 +4,11 @@ import html2canvas from 'html2canvas';
 import { formatDate, formatMoney, PAYMENT_METHOD_LABELS, toWhatsAppNumber } from '../lib/format';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus } from '../lib/billing';
 
+const LOGO_SRC = `${import.meta.env.BASE_URL}fdc-logo-invoice.png`;
+// Warm the cache at app load so the logo is already decoded by the time
+// print or the html2canvas export runs on a freshly opened invoice.
+new Image().src = LOGO_SRC;
+
 // Renders one invoice as a printable/shareable document. `invoice` must
 // carry its joined `patients` (name, mr_no, phone); `payments` is the list
 // of payment rows for this invoice (caller already has them grouped).
@@ -22,7 +27,7 @@ function InvoiceDocument({ invoice, payments }) {
   return (
     <div className="inv-doc-root">
       <div className="inv-doc-top">
-        <img className="inv-doc-logo" src={`${import.meta.env.BASE_URL}fdc-logo.png`} alt="Faseeh Dental Clinic" />
+        <img className="inv-doc-logo" src={LOGO_SRC} alt="Faseeh Dental Clinic" />
         <div className="inv-doc-head-right">
           <div className="inv-doc-title">INVOICE</div>
           <div className="inv-doc-number">MR #{patient.mr_no ?? '—'}</div>

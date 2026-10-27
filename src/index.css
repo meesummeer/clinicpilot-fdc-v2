@@ -1191,7 +1191,7 @@ body {
 
 .inv-doc-logo {
   display: block;
-  height: 160px;
+  height: 110px;
   width: auto;
 }
 
@@ -1373,7 +1373,7 @@ body {
 
 @media (max-width: 520px) {
   .inv-doc-logo {
-    height: 80px;
+    height: 46px;
   }
 
   .inv-doc-second-row {
