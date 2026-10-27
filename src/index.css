@@ -1183,7 +1183,7 @@ body {
 
 .inv-doc-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px 24px;
   margin-bottom: 14px;
@@ -1191,7 +1191,7 @@ body {
 
 .inv-doc-logo {
   display: block;
-  height: 44px;
+  height: 132px;
   width: auto;
 }
 
@@ -1372,6 +1372,10 @@ body {
 }
 
 @media (max-width: 520px) {
+  .inv-doc-logo {
+    height: 80px;
+  }
+
   .inv-doc-second-row {
     grid-template-columns: 1fr;
   }
