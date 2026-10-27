@@ -8,6 +8,7 @@ import InvoiceForm from '../components/InvoiceForm';
 import PaymentModal from '../components/PaymentModal';
 import EditInvoiceModal from '../components/EditInvoiceModal';
 import EditPaymentModal from '../components/EditPaymentModal';
+import InvoiceViewModal from '../components/InvoiceViewModal';
 
 export default function PatientProfile({ profile }) {
   const { id } = useParams();
@@ -22,6 +23,7 @@ export default function PatientProfile({ profile }) {
   const [payModalInvoice, setPayModalInvoice] = useState(null);
   const [editInvoice, setEditInvoice] = useState(null);
   const [editPayment, setEditPayment] = useState(null);
+  const [viewInvoice, setViewInvoice] = useState(null);
 
   useEffect(() => {
     load();
@@ -152,6 +154,9 @@ export default function PatientProfile({ profile }) {
                         Record Payment
                       </button>
                     )}
+                    <button type="button" className="btn btn-secondary btn-small" onClick={() => setViewInvoice({ ...inv, patients: patient })}>
+                      View Invoice
+                    </button>
                     <button type="button" className="btn btn-dark btn-small" onClick={() => setEditInvoice(inv)}>
                       Edit Invoice
                     </button>
@@ -195,6 +200,14 @@ export default function PatientProfile({ profile }) {
           invoice={editInvoice}
           onClose={() => setEditInvoice(null)}
           onSaved={() => { setEditInvoice(null); load(); }}
+        />
+      )}
+
+      {viewInvoice && (
+        <InvoiceViewModal
+          invoice={viewInvoice}
+          payments={paymentsByInvoice.get(viewInvoice.id) || []}
+          onClose={() => setViewInvoice(null)}
         />
       )}
 

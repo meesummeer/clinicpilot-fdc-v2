@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import { formatDate, formatMoney, currentMonthKarachi, monthRangeKarachi, PAYMENT_METHOD_LABELS } from '../lib/format';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvoice } from '../lib/billing';
@@ -149,7 +150,7 @@ export default function Billings({ profile }) {
                     <tr key={inv.id}>
                       <td>{formatDate(inv.created_at)}</td>
                       <td>#{inv.patients?.mr_no ?? '—'}</td>
-                      <td>{inv.patients?.name || 'Unknown'}</td>
+                      <td><Link className="text-link" to={`/patients/${inv.patient_id}`}>{inv.patients?.name || 'Unknown'}</Link></td>
                       <td>{inv.procedure || '—'}</td>
                       <td>{formatMoney(net)}</td>
                       <td>{formatMoney(paid)}</td>
