@@ -1189,20 +1189,10 @@ body {
   margin-bottom: 14px;
 }
 
-.inv-doc-logo-main {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #009688;
-  line-height: 1;
-  letter-spacing: 0.03em;
-}
-
-.inv-doc-logo-sub {
-  margin-top: 2px;
-  color: #6b7280;
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+.inv-doc-logo {
+  display: block;
+  height: 44px;
+  width: auto;
 }
 
 .inv-doc-head-right {

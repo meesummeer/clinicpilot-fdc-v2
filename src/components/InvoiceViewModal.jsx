@@ -22,10 +22,7 @@ function InvoiceDocument({ invoice, payments }) {
   return (
     <div className="inv-doc-root">
       <div className="inv-doc-top">
-        <div>
-          <div className="inv-doc-logo-main">Faseeh Dental Clinic</div>
-          <div className="inv-doc-logo-sub">PATIENT INVOICE</div>
-        </div>
+        <img className="inv-doc-logo" src={`${import.meta.env.BASE_URL}fdc-logo.png`} alt="Faseeh Dental Clinic" />
         <div className="inv-doc-head-right">
           <div className="inv-doc-title">INVOICE</div>
           <div className="inv-doc-number">MR #{patient.mr_no ?? '—'}</div>
