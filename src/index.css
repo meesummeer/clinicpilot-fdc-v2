@@ -1827,3 +1827,64 @@ body {
 .text-link:hover {
   text-decoration: underline;
 }
+
+/* ----- License expiry marquee (see components/LicenseBanner.jsx) ----- */
+.license-banner {
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: #c62828;
+  color: #fff;
+  border-bottom: 2px solid #8e1b1b;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 9px 0;
+}
+
+.license-banner--fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.license-banner__track {
+  display: flex;
+  width: max-content;
+  animation: license-marquee 36s linear infinite;
+}
+
+.license-banner__track span {
+  white-space: nowrap;
+  padding-right: 72px;
+}
+
+.license-banner:hover .license-banner__track {
+  animation-play-state: paused;
+}
+
+@keyframes license-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .license-banner__track {
+    animation: none;
+    width: auto;
+  }
+  .license-banner__track span {
+    white-space: normal;
+    padding: 0 16px;
+  }
+  .license-banner__track span[aria-hidden='true'] {
+    display: none;
+  }
+}
+
+@media print {
+  .license-banner {
+    display: none !important;
+  }
+}
