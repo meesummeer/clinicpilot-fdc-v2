@@ -2,7 +2,6 @@ import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './lib/useAuth';
 import { supabase } from './lib/supabaseClient';
 import Login from './pages/Login';
-import LicenseBanner from './components/LicenseBanner';
 import Home from './pages/Home';
 import Patients from './pages/Patients';
 import PatientProfile from './pages/PatientProfile';
@@ -32,14 +31,7 @@ export default function App() {
   if (loading) {
     return <div className="auth-loading">Loading ClinicPilot…</div>;
   }
-  if (!session) {
-    return (
-      <>
-        <LicenseBanner fixed />
-        <Login />
-      </>
-    );
-  }
+  if (!session) return <Login />;
   if (!profile) {
     return (
       <div className="auth-loading">
@@ -91,7 +83,6 @@ export default function App() {
       </aside>
 
       <div className="main">
-        <LicenseBanner />
         <header className="topbar">
           <h1 className="topbar-title">{pageTitle(location.pathname)}</h1>
           <div className="topbar-user">
