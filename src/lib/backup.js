@@ -1,9 +1,10 @@
 import { supabase, fetchAllRows } from './supabaseClient';
 
-// URL of the deployed Google Apps Script web app that saves snapshots to
-// Google Drive (see backup/README.md). Not a secret: the script only acts on
-// a valid admin Supabase login token. Leave empty until the script is deployed;
-// the Settings page then falls back to a plain file download.
+// Base URL of the deployed Cloudflare Worker that stores snapshots in R2
+// (see backup/README.md), e.g. 'https://fdc-backup.<account>.workers.dev'.
+// Not a secret: the Worker only acts on a valid admin Supabase login token.
+// Leave empty until the Worker is deployed; Back Up Now then falls back to a
+// plain file download.
 export const BACKUP_ENDPOINT = '';
 
 // Every table, so a snapshot is a complete restore source. All have a uuid
@@ -63,41 +64,54 @@ export function downloadSnapshot(snapshot, filename = backupFilename()) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-// text/plain keeps this a "simple" CORS request (no preflight), which Apps
-// Script web apps cannot answer. The token goes in the body, never the URL.
-async function callEndpoint(payload) {
-  if (!BACKUP_ENDPOINT) throw new Error('Drive backup is not set up yet.');
+async function sha256Hex(bytes) {
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+// The login token goes in the Authorization header, never the URL.
+async function callWorker(path, init = {}) {
+  if (!BACKUP_ENDPOINT) throw new Error('Cloud backup is not set up yet.');
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new Error('Your session expired. Sign in again and retry.');
 
-  const res = await fetch(BACKUP_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ token, ...payload }),
+  const res = await fetch(BACKUP_ENDPOINT.replace(/\/+$/, '') + path, {
+    ...init,
+    headers: { ...init.headers, Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error(`Backup server returned ${res.status}.`);
-  let out;
+  let out = null;
   try {
     out = await res.json();
   } catch {
-    throw new Error('Backup server sent an unreadable reply. Check the script deployment.');
+    // fall through to the generic error below
   }
-  if (!out.ok) throw new Error(out.error || 'Backup server rejected the request.');
+  if (!res.ok || !out?.ok) throw new Error(out?.error || `Backup server returned ${res.status}.`);
   return out;
 }
 
-// Saves the snapshot to Drive and checks the script's read-back row counts
-// against what we sent. Returns { filename, size, counts, verified, mismatches }.
+// Sends the snapshot to R2. The Worker passes our SHA-256 to R2, which
+// rejects the upload unless the bytes it received hash to the same value, and
+// the Worker then confirms the stored size. We double-check that size here.
+// Returns { filename, size, counts, verified }.
 export async function uploadSnapshot(snapshot, counts, filename = backupFilename()) {
-  const out = await callEndpoint({ action: 'save', filename, snapshot });
-  const saved = out.counts || {};
-  const mismatches = BACKUP_TABLES.filter((t) => saved[t] !== counts[t]);
-  return { filename: out.filename || filename, size: out.size, counts: saved, verified: mismatches.length === 0, mismatches };
+  const bytes = new TextEncoder().encode(JSON.stringify(snapshot));
+  const sha256 = await sha256Hex(bytes);
+  const out = await callWorker('/backups', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Backup-Filename': filename,
+      'X-Backup-Sha256': sha256,
+      'X-Backup-Counts': JSON.stringify(counts),
+    },
+    body: bytes,
+  });
+  return { filename: out.filename || filename, size: out.size, counts, verified: out.size === bytes.byteLength };
 }
 
-// Most recent backup files in the Drive folder, newest first.
+// Most recent backup files in the bucket, newest first.
 export async function listBackups() {
-  const out = await callEndpoint({ action: 'list' });
+  const out = await callWorker('/backups');
   return out.files || [];
 }

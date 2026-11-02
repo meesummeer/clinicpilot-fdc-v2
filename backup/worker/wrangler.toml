@@ -1,0 +1,18 @@
+name = "fdc-backup"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# Private R2 bucket (create it first: npx wrangler r2 bucket create fdc-backups).
+# Never turn on public access / r2.dev for this bucket: it holds patient data.
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "fdc-backups"
+
+[vars]
+SUPABASE_URL = "https://pipddzentbstvatiioqm.supabase.co"
+# Browsers allowed to call the Worker. The login token is the real lock;
+# this just stops other websites' pages from using it.
+ALLOWED_ORIGINS = "https://clinicpilot.faseehdentalclinic.com,https://meesummeer.github.io,http://localhost:5173"
+
+# SUPABASE_ANON_KEY is intentionally NOT here. Set it with:
+#   npx wrangler secret put SUPABASE_ANON_KEY

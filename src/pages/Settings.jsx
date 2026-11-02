@@ -60,19 +60,19 @@ function BackupCard() {
 
     if (!configured) {
       downloadSnapshot(built.snapshot);
-      setResult({ where: 'computer', counts: built.counts, verified: true, mismatches: [] });
+      setResult({ where: 'computer', counts: built.counts, verified: true });
       setBusy('');
       return;
     }
 
     try {
       const saved = await uploadSnapshot(built.snapshot, built.counts);
-      setResult({ where: 'drive', ...saved });
+      setResult({ where: 'cloud', ...saved });
       loadRecent();
     } catch (err) {
-      // Never lose the work: if Drive failed, hand over the file locally.
+      // Never lose the work: if the cloud save failed, hand over the file locally.
       downloadSnapshot(built.snapshot);
-      setError(`Google Drive backup failed (${err.message}). A copy was downloaded to this computer instead.`);
+      setError(`Cloud backup failed (${err.message}). A copy was downloaded to this computer instead.`);
     }
     setBusy('');
   }
@@ -84,7 +84,7 @@ function BackupCard() {
     try {
       const built = await buildSnapshot();
       downloadSnapshot(built.snapshot);
-      setResult({ where: 'computer', counts: built.counts, verified: true, mismatches: [] });
+      setResult({ where: 'computer', counts: built.counts, verified: true });
     } catch (err) {
       setError(`Could not read the data, nothing was saved. ${err.message}`);
     }
@@ -96,8 +96,8 @@ function BackupCard() {
       <h3 className="settings-block-title">Backup</h3>
       <p className="settings-desc">
         {configured
-          ? 'Saves a complete, dated copy of all clinic data (patients, invoices, payments, appointments, expenses, notes, staff, audit log) to Google Drive. Press it at the end of each day.'
-          : 'Google Drive backup is not connected yet, so Back Up Now will download the file to this computer. Keep it somewhere safe.'}
+          ? 'Saves a complete, dated copy of all clinic data (patients, invoices, payments, appointments, expenses, notes, staff, audit log) to private cloud storage. Press it at the end of each day.'
+          : 'Cloud backup is not connected yet, so Back Up Now will download the file to this computer. Keep it somewhere safe.'}
       </p>
 
       {error && <div className="error-text" style={{ marginBottom: 12 }}>{error}</div>}
@@ -115,15 +115,13 @@ function BackupCard() {
           }}
         >
           <strong>
-            {result.where === 'drive'
-              ? result.verified ? 'Backed up to Google Drive and verified.' : 'Saved to Google Drive, but the counts do not match.'
+            {result.where === 'cloud'
+              ? result.verified ? 'Backed up to cloud storage and verified.' : 'Saved to cloud storage, but the stored size does not match.'
               : 'Downloaded to this computer.'}
           </strong>
           {result.filename && <div>{result.filename}{result.size ? ` · ${formatSize(result.size)}` : ''}</div>}
           <div>{countSummary(result.counts)}</div>
-          {result.mismatches?.length > 0 && (
-            <div>Mismatch in: {result.mismatches.join(', ')}. Press Back Up Now again.</div>
-          )}
+          {result.where === 'cloud' && !result.verified && <div>Press Back Up Now again.</div>}
         </div>
       )}
 
@@ -141,8 +139,8 @@ function BackupCard() {
       {configured && (
         <div style={{ marginTop: 16 }}>
           <div className="settings-desc" style={{ marginBottom: 6 }}>
-            {recent === null && !recentError && 'Checking Google Drive…'}
-            {recent && recent.length === 0 && 'No backups in the Drive folder yet.'}
+            {recent === null && !recentError && 'Checking cloud storage…'}
+            {recent && recent.length === 0 && 'No backups in cloud storage yet.'}
             {recent && recent.length > 0 && <>Last backup: <strong>{formatDateTime(recent[0].createdAt)}</strong></>}
             {recentError && `Could not read the backup list (${recentError}).`}
           </div>
