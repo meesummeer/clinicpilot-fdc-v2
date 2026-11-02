@@ -1,49 +1,170 @@
-import { useState } from 'react';
-import { supabase, fetchAllRows } from '../lib/supabaseClient';
-import { todayKarachi } from '../lib/format';
+import { useCallback, useEffect, useState } from 'react';
+import { formatDateTime } from '../lib/format';
+import {
+  BACKUP_ENDPOINT,
+  buildSnapshot,
+  downloadSnapshot,
+  listBackups,
+  uploadSnapshot,
+} from '../lib/backup';
 
-export default function Settings({ profile, isAdmin }) {
-  const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState('');
+const COUNT_LABELS = [
+  ['patients', 'patients'],
+  ['invoices', 'invoices'],
+  ['payments', 'payments'],
+  ['appointments', 'appointments'],
+  ['expenses', 'expenses'],
+];
 
-  async function handleExport() {
-    setExporting(true);
-    setExportError('');
+function formatSize(bytes) {
+  if (!bytes && bytes !== 0) return '';
+  return bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function countSummary(counts) {
+  return COUNT_LABELS.map(([key, label]) => `${counts[key] ?? 0} ${label}`).join(' · ');
+}
+
+function BackupCard() {
+  const configured = Boolean(BACKUP_ENDPOINT);
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const [recent, setRecent] = useState(null);
+  const [recentError, setRecentError] = useState('');
+
+  const loadRecent = useCallback(async () => {
+    if (!configured) return;
     try {
-      const [patients, invoices, payments, appointments, expenses] = await Promise.all([
-        fetchAllRows(() => supabase.from('patients').select('*')),
-        fetchAllRows(() => supabase.from('invoices').select('*')),
-        fetchAllRows(() => supabase.from('payments').select('*')),
-        fetchAllRows(() => supabase.from('appointments').select('*')),
-        fetchAllRows(() => supabase.from('expenses').select('*')),
-      ]);
-      const failures = [patients, invoices, payments, appointments, expenses].filter((r) => r.error);
-      if (failures.length) throw new Error(failures[0].error.message);
-
-      const snapshot = {
-        exported_at: new Date().toISOString(),
-        patients: patients.data,
-        invoices: invoices.data,
-        payments: payments.data,
-        appointments: appointments.data,
-        expenses: expenses.data,
-      };
-      const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `clinicpilot-fdc-backup-${todayKarachi()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      setRecent(await listBackups());
+      setRecentError('');
     } catch (err) {
-      setExportError(err.message);
-    } finally {
-      setExporting(false);
+      setRecentError(err.message);
     }
+  }, [configured]);
+
+  useEffect(() => { loadRecent(); }, [loadRecent]);
+
+  async function handleBackup() {
+    setBusy('backup');
+    setError('');
+    setResult(null);
+    let built;
+    try {
+      built = await buildSnapshot();
+    } catch (err) {
+      setError(`Could not read the data, nothing was saved. ${err.message}`);
+      setBusy('');
+      return;
+    }
+
+    if (!configured) {
+      downloadSnapshot(built.snapshot);
+      setResult({ where: 'computer', counts: built.counts, verified: true, mismatches: [] });
+      setBusy('');
+      return;
+    }
+
+    try {
+      const saved = await uploadSnapshot(built.snapshot, built.counts);
+      setResult({ where: 'drive', ...saved });
+      loadRecent();
+    } catch (err) {
+      // Never lose the work: if Drive failed, hand over the file locally.
+      downloadSnapshot(built.snapshot);
+      setError(`Google Drive backup failed (${err.message}). A copy was downloaded to this computer instead.`);
+    }
+    setBusy('');
   }
 
+  async function handleDownloadOnly() {
+    setBusy('download');
+    setError('');
+    setResult(null);
+    try {
+      const built = await buildSnapshot();
+      downloadSnapshot(built.snapshot);
+      setResult({ where: 'computer', counts: built.counts, verified: true, mismatches: [] });
+    } catch (err) {
+      setError(`Could not read the data, nothing was saved. ${err.message}`);
+    }
+    setBusy('');
+  }
+
+  return (
+    <div className="card settings-block">
+      <h3 className="settings-block-title">Backup</h3>
+      <p className="settings-desc">
+        {configured
+          ? 'Saves a complete, dated copy of all clinic data (patients, invoices, payments, appointments, expenses, notes, staff, audit log) to Google Drive. Press it at the end of each day.'
+          : 'Google Drive backup is not connected yet, so Back Up Now will download the file to this computer. Keep it somewhere safe.'}
+      </p>
+
+      {error && <div className="error-text" style={{ marginBottom: 12 }}>{error}</div>}
+
+      {result && (
+        <div
+          style={{
+            background: result.verified ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${result.verified ? '#bbf7d0' : '#fecaca'}`,
+            color: result.verified ? '#166534' : 'var(--danger)',
+            borderRadius: 'var(--radius)',
+            padding: '10px 12px',
+            fontSize: '0.8125rem',
+            marginBottom: 12,
+          }}
+        >
+          <strong>
+            {result.where === 'drive'
+              ? result.verified ? 'Backed up to Google Drive and verified.' : 'Saved to Google Drive, but the counts do not match.'
+              : 'Downloaded to this computer.'}
+          </strong>
+          {result.filename && <div>{result.filename}{result.size ? ` · ${formatSize(result.size)}` : ''}</div>}
+          <div>{countSummary(result.counts)}</div>
+          {result.mismatches?.length > 0 && (
+            <div>Mismatch in: {result.mismatches.join(', ')}. Press Back Up Now again.</div>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button type="button" className="btn btn-primary" onClick={handleBackup} disabled={Boolean(busy)}>
+          {busy === 'backup' ? 'Backing up…' : 'Back Up Now'}
+        </button>
+        {configured && (
+          <button type="button" className="btn btn-secondary" onClick={handleDownloadOnly} disabled={Boolean(busy)}>
+            {busy === 'download' ? 'Preparing…' : 'Download a copy'}
+          </button>
+        )}
+      </div>
+
+      {configured && (
+        <div style={{ marginTop: 16 }}>
+          <div className="settings-desc" style={{ marginBottom: 6 }}>
+            {recent === null && !recentError && 'Checking Google Drive…'}
+            {recent && recent.length === 0 && 'No backups in the Drive folder yet.'}
+            {recent && recent.length > 0 && <>Last backup: <strong>{formatDateTime(recent[0].createdAt)}</strong></>}
+            {recentError && `Could not read the backup list (${recentError}).`}
+          </div>
+          {recent && recent.length > 1 && (
+            <ul className="settings-desc" style={{ margin: 0, paddingLeft: 18 }}>
+              {recent.slice(0, 5).map((f) => (
+                <li key={f.name}>{formatDateTime(f.createdAt)} · {formatSize(f.size)}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      <p className="settings-desc" style={{ marginTop: 14, marginBottom: 0 }}>
+        This is a point-in-time snapshot, not continuous backup. Anything entered after you press the button is
+        not in that file.
+      </p>
+    </div>
+  );
+}
+
+export default function Settings({ profile, isAdmin }) {
   return (
     <section className="pane active settings-pane">
       <h2 className="settings-heading">Settings</h2>
@@ -63,23 +184,7 @@ export default function Settings({ profile, isAdmin }) {
           </p>
         </div>
       )}
-      {isAdmin && (
-        <div className="card settings-block">
-          <h3 className="settings-block-title">Backup</h3>
-          <p className="settings-desc">
-            Download a full JSON snapshot of patients, invoices, payments, appointments, and expenses — keep a copy
-            somewhere safe (e.g. Google Drive) after big billing days.
-          </p>
-          {exportError && <div className="error-text">{exportError}</div>}
-          <button type="button" className="btn btn-primary" onClick={handleExport} disabled={exporting}>
-            {exporting ? 'Exporting…' : 'Export All Data'}
-          </button>
-          <p className="settings-desc" style={{ marginTop: 10 }}>
-            This is a manual, point-in-time snapshot, not continuous backup. For automated nightly backups and
-            point-in-time recovery straight from Supabase, upgrade the project to the Pro plan.
-          </p>
-        </div>
-      )}
+      {isAdmin && <BackupCard />}
     </section>
   );
 }
