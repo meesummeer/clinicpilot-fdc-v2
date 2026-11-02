@@ -5,7 +5,7 @@ import { supabase, fetchAllRows } from './supabaseClient';
 // Not a secret: the Worker only acts on a valid admin Supabase login token.
 // Leave empty until the Worker is deployed; Back Up Now then falls back to a
 // plain file download.
-export const BACKUP_ENDPOINT = '';
+export const BACKUP_ENDPOINT = 'https://fdc-backup.faseehdentalclinic.workers.dev';
 
 // Every table, so a snapshot is a complete restore source. All have a uuid
 // primary key `id`, which gives fetchAllRows the deterministic order it needs.
