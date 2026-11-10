@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { formatDate, formatDateTime, formatDuration, formatMoney, formatTime, PAYMENT_METHOD_LABELS } from '../lib/format';
 import { describeVisitsError, stars } from '../lib/visits';
+import { openPortal } from '../lib/portal';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvoice } from '../lib/billing';
 import PatientDrawer from '../components/PatientDrawer';
 import InvoiceForm from '../components/InvoiceForm';
@@ -213,7 +214,7 @@ export default function PatientProfile({ profile }) {
         )}
 
         <div className="pane-foot">
-          <button type="button" className="btn btn-primary" onClick={() => navigate(`/checkin?patient=${patient.id}`)}>Check in</button>
+          <button type="button" className="btn btn-primary" onClick={() => openPortal(`?patient=${patient.id}`)}>Check in</button>
           <button type="button" className="btn btn-secondary" onClick={() => setEditOpen(true)}>Edit Patient</button>
           <button type="button" className="btn btn-danger" onClick={handleDeletePatient}>Delete Patient</button>
         </div>

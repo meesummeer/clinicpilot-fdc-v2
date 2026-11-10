@@ -2069,3 +2069,19 @@ body {
 .checkin-star.on {
   color: #f59e0b;
 }
+
+/* ----- Portal window (no sidebar) ----- */
+.main.main--portal {
+  margin-left: 0;
+}
+
+.portal-exit {
+  margin-left: 12px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.portal-exit:hover {
+  color: var(--accent);
+}

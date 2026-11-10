@@ -254,7 +254,15 @@ function CheckOutPanel({ visit, now, onClose, onDone, onAlreadyOut }) {
   );
 }
 
-export default function CheckIn() {
+// In the Portal window names are plain text, so nobody is one tap from a
+// patient's billing page.
+function PatientName({ visit, link }) {
+  const name = visit.patients?.name;
+  if (!link) return <span className="checkin-visit__name">{name}</span>;
+  return <Link to={`/patients/${visit.patient_id}`} className="checkin-visit__name">{name}</Link>;
+}
+
+export default function CheckIn({ portal = false }) {
   const [params, setParams] = useSearchParams();
   const [open, setOpen] = useState([]);
   const [closed, setClosed] = useState([]);
@@ -381,7 +389,7 @@ export default function CheckIn() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Deep link from a patient's profile: /checkin?patient=<id>
+  // Deep link from a patient's profile: /portal?patient=<id>
   const wanted = params.get('patient');
   useEffect(() => {
     if (!wanted || !loaded) return;
@@ -511,9 +519,7 @@ export default function CheckIn() {
               return (
                 <div className="checkin-visit" key={v.id}>
                   <div className="checkin-visit__main">
-                    <Link to={`/patients/${v.patient_id}`} className="checkin-visit__name">
-                      {v.patients?.name}
-                    </Link>
+                    <PatientName visit={v} link={!portal} />
                     <div className="checkin-muted">
                       #{v.patients?.mr_no} · {v.reason}
                     </div>
@@ -539,9 +545,7 @@ export default function CheckIn() {
             {closed.map((v) => (
               <div className="checkin-visit" key={v.id}>
                 <div className="checkin-visit__main">
-                  <Link to={`/patients/${v.patient_id}`} className="checkin-visit__name">
-                    {v.patients?.name}
-                  </Link>
+                  <PatientName visit={v} link={!portal} />
                   <div className="checkin-muted">
                     #{v.patients?.mr_no} · {v.reason}
                   </div>

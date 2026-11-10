@@ -90,7 +90,9 @@ push explicitly when a change is ready; don't assume it happens for you.
 
 ## Check-in (tablet)
 
-`/checkin` scans a patient QR (jsQR, works on Android Chrome and iPad Safari;
+The sidebar's **Portal** item opens `/portal` in its own named window with no
+sidebar (names are not links there, so a patient holding the tablet can't
+wander into billing). `/checkin` redirects to it. The portal scans a patient QR (jsQR, works on Android Chrome and iPad Safari;
 needs HTTPS) and records a row in `visits` (`supabase/04_visits.sql`). Visit
 times are stamped by the database clock via trigger, never the tablet's; one
 open visit per patient is enforced by a unique index. Add any new table to

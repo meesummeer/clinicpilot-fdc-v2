@@ -1,4 +1,4 @@
-import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, NavLink, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './lib/useAuth';
 import { supabase } from './lib/supabaseClient';
 import Login from './pages/Login';
@@ -10,10 +10,10 @@ import Hub from './pages/Hub';
 import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
 import CheckIn from './pages/CheckIn';
+import { openPortal, portalHref } from './lib/portal';
 
 const PAGE_TITLES = {
   '/home': 'Home',
-  '/checkin': 'Check-in',
   '/patients': 'Patients',
   '/billings': 'Billings',
   '/hub': 'Hub',
@@ -48,6 +48,28 @@ export default function App() {
     );
   }
 
+  // The Portal is its own window: no sidebar, so whoever is handed the tablet
+  // sees check-in and check-out only. Still needs a signed-in staff account.
+  if (location.pathname === '/portal') {
+    return (
+      <div className="app">
+        <div className="main main--portal">
+          <header className="topbar">
+            <img src={`${import.meta.env.BASE_URL}fdc-logo.png`} alt="" style={{ width: 36, height: 36, objectFit: 'contain', marginRight: 12 }} />
+            <h1 className="topbar-title">Faseeh Dental Clinic · Portal</h1>
+            <div className="topbar-user">
+              <span className="topbar-user__name">{profile.full_name}</span>
+              <Link to="/home" className="portal-exit">Open ClinicPilot ›</Link>
+            </div>
+          </header>
+          <div className="workspace">
+            <CheckIn portal />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isAdmin = profile.role === 'admin';
   const canSeeExpenses = isAdmin;
   const navClass = ({ isActive }) => 'nav-btn' + (isActive ? ' active' : '');
@@ -65,7 +87,17 @@ export default function App() {
           </div>
           <nav className="sidebar-main" aria-label="Primary navigation">
             <NavLink to="/home" className={navClass}><span className="nav-btn__label">Home</span></NavLink>
-            <NavLink to="/checkin" className={navClass}><span className="nav-btn__label">Check-in</span></NavLink>
+            <a
+              href={portalHref()}
+              className="nav-btn"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; // let "open in new tab" do its thing
+                e.preventDefault();
+                openPortal();
+              }}
+            >
+              <span className="nav-btn__label">Portal</span>
+            </a>
             <NavLink to="/patients" className={navClass}><span className="nav-btn__label">Patients</span></NavLink>
             <NavLink to="/billings" className={navClass}><span className="nav-btn__label">Billings</span></NavLink>
             {isAdmin && <NavLink to="/hub" className={navClass}><span className="nav-btn__label">Hub</span></NavLink>}
@@ -97,7 +129,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home profile={profile} />} />
-            <Route path="/checkin" element={<CheckIn />} />
+            <Route path="/checkin" element={<Navigate to={{ pathname: '/portal', search: location.search }} replace />} />
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/:id" element={<PatientProfile profile={profile} />} />
             <Route path="/billings" element={<Billings profile={profile} />} />
