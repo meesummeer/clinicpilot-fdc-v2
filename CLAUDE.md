@@ -70,6 +70,12 @@ push explicitly when a change is ready; don't assume it happens for you.
   existing update/delete paths with raw inserts that skip it.
 - `patients.mr_no` keeps the legacy `25xxx` numbering via
   `patients_mr_no_seq` (DB default) — never assign it client-side.
+- `patients.uid` (8 random characters, shown as `K7Q2-9XMD`, QR payload
+  `FDC-K7Q2-9XMD`) is assigned and frozen by a DB trigger
+  (`supabase/05_patient_uid.sql`) — never set or edit it from the client. It
+  is deliberately random, not the sequential MR number, so a QR can't be
+  guessed. `parsePatientCode` (`src/lib/visits.js`) and `src/lib/patientCard.js`
+  (QR + PNG card) are the only places that know the format.
 - GitHub Pages has no SPA fallback, so the build step copies
   `dist/index.html` to `dist/404.html` (see the workflow) — don't remove
   that step or deep links will 404 on refresh.

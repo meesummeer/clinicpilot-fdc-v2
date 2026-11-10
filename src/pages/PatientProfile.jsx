@@ -6,6 +6,7 @@ import { describeVisitsError, stars } from '../lib/visits';
 import { openPortal } from '../lib/portal';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvoice } from '../lib/billing';
 import PatientDrawer from '../components/PatientDrawer';
+import PatientIdCard from '../components/PatientIdCard';
 import InvoiceForm from '../components/InvoiceForm';
 import PaymentModal from '../components/PaymentModal';
 import EditInvoiceModal from '../components/EditInvoiceModal';
@@ -106,11 +107,14 @@ export default function PatientProfile({ profile }) {
         </div>
 
         {tab === 'profile' && (
-          <div>
-            <p><strong>Phone:</strong> {patient.phone || '—'}</p>
-            <p><strong>Address:</strong> {patient.address || '—'}</p>
-            <p><strong>Gender:</strong> {patient.gender || '—'}</p>
-            <p><strong>Patient since:</strong> {formatDate(patient.created_at)}</p>
+          <div className="profile-grid">
+            <div>
+              <p><strong>Phone:</strong> {patient.phone || '—'}</p>
+              <p><strong>Address:</strong> {patient.address || '—'}</p>
+              <p><strong>Gender:</strong> {patient.gender || '—'}</p>
+              <p><strong>Patient since:</strong> {formatDate(patient.created_at)}</p>
+            </div>
+            <PatientIdCard patient={patient} />
           </div>
         )}
 

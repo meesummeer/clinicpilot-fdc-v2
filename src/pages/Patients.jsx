@@ -28,12 +28,14 @@ export default function Patients() {
   const filtered = useMemo(() => {
     let list = patients;
     const q = search.trim().toLowerCase();
+    const qUid = q.replace(/^fdc[\s:-]*/, '').replace(/[\s-]/g, '');
     if (q) {
       list = list.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           (p.phone || '').toLowerCase().includes(q) ||
-          String(p.mr_no).includes(q)
+          String(p.mr_no).includes(q) ||
+          (qUid.length >= 4 && (p.uid || '').toLowerCase().includes(qUid))
       );
     }
     list = [...list];

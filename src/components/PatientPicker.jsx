@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import PatientDrawer from './PatientDrawer';
 
-// Searchable patient select by MR number, name, or phone. Used by Billings'
+// Searchable patient select by MR number, name, phone, or UID. Used by Billings'
 // "+ Add Invoice" flow, which (unlike the per-patient Billing tab) has no
 // patient already in context.
 export default function PatientPicker({ onSelect, autoFocus = true }) {
@@ -15,7 +15,7 @@ export default function PatientPicker({ onSelect, autoFocus = true }) {
     (async () => {
       setLoading(true);
       const { data, error } = await fetchAllRows(() =>
-        supabase.from('patients').select('id, mr_no, name, phone').order('name')
+        supabase.from('patients').select('id, mr_no, name, phone, uid').order('name')
       );
       if (error) console.error(error);
       setPatients(data || []);
@@ -26,12 +26,14 @@ export default function PatientPicker({ onSelect, autoFocus = true }) {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
+    const qUid = q.replace(/^fdc[\s:-]*/, '').replace(/[\s-]/g, '');
     return patients
       .filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           (p.phone || '').toLowerCase().includes(q) ||
-          String(p.mr_no).includes(q)
+          String(p.mr_no).includes(q) ||
+          (qUid.length >= 4 && (p.uid || '').toLowerCase().includes(qUid))
       )
       .slice(0, 20);
   }, [patients, search]);
@@ -41,7 +43,7 @@ export default function PatientPicker({ onSelect, autoFocus = true }) {
       <input
         type="text"
         className="search-wide"
-        placeholder="Search by MR number, name, or phone…"
+        placeholder="Search by MR number, name, phone, or UID…"
         autoComplete="off"
         autoFocus={autoFocus}
         value={search}

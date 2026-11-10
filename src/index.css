@@ -2085,3 +2085,49 @@ body {
 .portal-exit:hover {
   color: var(--accent);
 }
+
+/* ----- Patient ID card (QR + UID) on the profile ----- */
+.profile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.id-card {
+  width: 240px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.id-card__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.id-card__qr {
+  display: block;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 8px;
+}
+
+.id-card__uid {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.id-card__actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}

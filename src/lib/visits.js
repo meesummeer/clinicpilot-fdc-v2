@@ -3,16 +3,23 @@ import { karachiDayRange, todayKarachi } from './format';
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
+// Same 32-character alphabet as supabase/05_patient_uid.sql (no I, O, 0, 1).
+const UID_RE = /^(FDC[\s:-]*)?([2-9A-HJ-NP-Z]{4})[\s-]?([2-9A-HJ-NP-Z]{4})$/i;
+
 // Turns whatever a patient's QR code contains into a patient lookup key.
-// Accepted: "FDC:25123", "MR#25123" or a bare "25123" (MR number), a bare
-// patient id (uuid), or any link containing a patient id such as
-// ".../patients/<uuid>". Anything else returns null. Change the QR format by
-// editing this one function.
+// The patient QR cards carry "FDC-K7Q2-9XMD" (the patient's UID); also
+// accepted: the UID typed without the prefix or dash, "FDC:25123", "MR#25123"
+// or a bare "25123" (MR number), a bare patient id (uuid), or a link
+// containing a patient id such as ".../patients/<uuid>". Anything else
+// returns null. Change the QR format by editing this one function.
 export function parsePatientCode(raw) {
   const text = String(raw ?? '').trim();
   if (!text) return null;
   const uuid = text.match(UUID_RE);
   if (uuid) return { id: uuid[0].toLowerCase() };
+  const u = text.match(UID_RE);
+  // A bare run of digits with no FDC prefix is an MR number, not a UID.
+  if (u && (u[1] || /[A-Z]/i.test(u[2] + u[3]))) return { uid: (u[2] + u[3]).toUpperCase() };
   const mr = text.match(/^(?:FDC|MR)?[\s:#-]*(\d{3,9})$/i);
   if (mr) return { mrNo: Number(mr[1]) };
   return null;
@@ -39,7 +46,8 @@ export function describeVisitsError(error) {
 export async function findPatient(parsed) {
   if (!parsed) return { patient: null, error: 'unrecognised' };
   const base = supabase.from('patients').select('id, mr_no, name, phone, address, gender');
-  const { data, error } = await (parsed.id ? base.eq('id', parsed.id) : base.eq('mr_no', parsed.mrNo)).maybeSingle();
+  const query = parsed.id ? base.eq('id', parsed.id) : parsed.uid ? base.eq('uid', parsed.uid) : base.eq('mr_no', parsed.mrNo);
+  const { data, error } = await query.maybeSingle();
   if (error) return { patient: null, error: error.message };
   return { patient: data, error: data ? null : 'not_found' };
 }
