@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase, fetchAllRows } from '../lib/supabaseClient';
 import { formatDate } from '../lib/format';
 import { PROCEDURE_SUGGESTIONS } from '../lib/procedures';
+import { fetchTodayStats } from '../lib/visits';
 
 const STATUS_COLOR_CLASS = {
   scheduled: 'status-yellow',
@@ -30,6 +31,27 @@ export default function Home({ profile }) {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalAppt, setModalAppt] = useState(null); // null = closed, {} = new, object = editing
+  const [stats, setStats] = useState(null); // today's visit numbers; stays null if unavailable
+
+  // Footfall strip: refreshed every minute and when the tab comes back.
+  useEffect(() => {
+    let live = true;
+    const load = async () => {
+      const res = await fetchTodayStats();
+      if (!live) return;
+      if (res.error) console.error(res.error);
+      setStats(res.stats || null);
+    };
+    load();
+    const timer = setInterval(load, 60000);
+    const onVisible = () => document.visibilityState === 'visible' && load();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      live = false;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
 
   useEffect(() => {
     loadMonth();
@@ -92,6 +114,27 @@ export default function Home({ profile }) {
 
   return (
     <section className="pane active">
+      {stats && (
+        <div className="card home-stats" aria-label="Today at the clinic">
+          <div>
+            <div className="home-stat__n">{stats.visitsToday}</div>
+            <div className="home-stat__l">Visits today</div>
+          </div>
+          <div>
+            <div className="home-stat__n">{stats.inClinic}</div>
+            <div className="home-stat__l">In clinic now</div>
+          </div>
+          <div>
+            <div className="home-stat__n">
+              {stats.avgRating === null ? '—' : stats.avgRating.toFixed(1)}
+              {stats.avgRating !== null && <span className="home-stat__of"> / 5</span>}
+            </div>
+            <div className="home-stat__l">
+              Average rating{stats.ratedCount ? ` (${stats.ratedCount} ${stats.ratedCount === 1 ? 'rating' : 'ratings'})` : ' today'}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="card">
         <div className="pane-head">
           <div className="monthNav">

@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, fetchAllRows } from './supabaseClient';
 import { karachiDayRange, todayKarachi } from './format';
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
@@ -108,4 +108,37 @@ export async function checkOutVisit(visitId, { rating, comment }) {
     .maybeSingle();
   if (error) return { visit: null, already: false, error: describeVisitsError(error) };
   return { visit: data, already: !data, error: null };
+}
+
+// Pure: numbers for the Home strip from today's visits and the still-open ones.
+// "Visits today" = checked in today; the rating average covers those same
+// visits (a rating is only given at check-out).
+export function summariseToday(todayRows, openRows) {
+  const rated = todayRows.filter((v) => v.feedback_rating);
+  const sum = rated.reduce((s, v) => s + v.feedback_rating, 0);
+  return {
+    visitsToday: todayRows.length,
+    inClinic: openRows.length,
+    ratedCount: rated.length,
+    avgRating: rated.length ? sum / rated.length : null,
+  };
+}
+
+// Returns { stats } or { error }. Never throws, so Home still loads without it.
+export async function fetchTodayStats() {
+  const [start, end] = karachiDayRange(todayKarachi());
+  const [today, open] = await Promise.all([
+    fetchAllRows(() =>
+      supabase
+        .from('visits')
+        .select('id, feedback_rating')
+        .gte('checked_in_at', start)
+        .lt('checked_in_at', end)
+        .order('id')
+    ),
+    fetchAllRows(() => supabase.from('visits').select('id').is('checked_out_at', null).order('id')),
+  ]);
+  const err = today.error || open.error;
+  if (err) return { error: describeVisitsError(err) };
+  return { stats: summariseToday(today.data || [], open.data || []) };
 }

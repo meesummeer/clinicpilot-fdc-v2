@@ -2151,3 +2151,28 @@ body {
   letter-spacing: 12px;
   text-align: center;
 }
+
+/* ----- Home: today's visits strip ----- */
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.home-stat__n {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.home-stat__of {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.home-stat__l {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
