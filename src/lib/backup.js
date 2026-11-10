@@ -14,6 +14,7 @@ export const BACKUP_TABLES = [
   'invoices',
   'payments',
   'appointments',
+  'visits',
   'expenses',
   'patient_notes',
   'staff_profiles',

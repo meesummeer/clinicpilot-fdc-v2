@@ -5,7 +5,7 @@ import PatientDrawer from './PatientDrawer';
 // Searchable patient select by MR number, name, or phone. Used by Billings'
 // "+ Add Invoice" flow, which (unlike the per-patient Billing tab) has no
 // patient already in context.
-export default function PatientPicker({ onSelect }) {
+export default function PatientPicker({ onSelect, autoFocus = true }) {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -43,7 +43,7 @@ export default function PatientPicker({ onSelect }) {
         className="search-wide"
         placeholder="Search by MR number, name, or phone…"
         autoComplete="off"
-        autoFocus
+        autoFocus={autoFocus}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />

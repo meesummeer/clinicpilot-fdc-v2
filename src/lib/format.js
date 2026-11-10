@@ -125,3 +125,27 @@ export function lastNMonthsKarachi(n) {
   }
   return months;
 }
+
+// '9:05 AM' in Asia/Karachi.
+export function formatTime(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (isNaN(d)) return '—';
+  return new Intl.DateTimeFormat('en-US', { timeZone: KHI_TZ, hour: 'numeric', minute: '2-digit', hour12: true }).format(d);
+}
+
+// '<1 min', '23 min', '1 h 05 min' from a millisecond span.
+export function formatDuration(ms) {
+  const mins = Math.max(0, Math.floor(ms / 60000));
+  if (mins < 1) return '<1 min';
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  return `${h} h ${String(mins % 60).padStart(2, '0')} min`;
+}
+
+// [startIsoInclusive, endIsoExclusive) for a 'YYYY-MM-DD' day, anchored at
+// Asia/Karachi midnight (+05:00, no DST).
+export function karachiDayRange(yyyyMmDd) {
+  const start = new Date(`${yyyyMmDd}T00:00:00+05:00`);
+  return [start.toISOString(), new Date(start.getTime() + 86400000).toISOString()];
+}

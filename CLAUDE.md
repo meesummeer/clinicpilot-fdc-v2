@@ -77,13 +77,25 @@ push explicitly when a change is ready; don't assume it happens for you.
 ## Layout
 
 - `src/pages/` — routed screens (Home, Patients, PatientProfile, Billings,
-  Expenses, Hub, Settings, Login)
+  Expenses, Hub, Settings, Login, CheckIn)
 - `src/components/` — modals/drawers/forms shared across pages
   (PatientDrawer, InvoiceForm, EditInvoiceModal, PaymentModal,
-  InvoiceViewModal, PatientPicker, ExpenseForm, EditExpenseModal)
+  InvoiceViewModal, PatientPicker, ExpenseForm, EditExpenseModal,
+  QrScanner)
 - `src/lib/` — `supabaseClient.js` (client + pagination helpers),
   `billing.js` (invoice math), `format.js` (money/date formatting, WhatsApp
-  number helper), `useAuth.js`
+  number helper), `useAuth.js`, `visits.js` (check-in/out data calls and
+  `parsePatientCode` — the one place that decides what a patient QR code
+  means), `backup.js`
+
+## Check-in (tablet)
+
+`/checkin` scans a patient QR (jsQR, works on Android Chrome and iPad Safari;
+needs HTTPS) and records a row in `visits` (`supabase/04_visits.sql`). Visit
+times are stamped by the database clock via trigger, never the tablet's; one
+open visit per patient is enforced by a unique index. Add any new table to
+`BACKUP_TABLES` in `src/lib/backup.js` and run its SQL before deploying code
+that reads it, or Back Up Now fails.
 
 ## Working style
 

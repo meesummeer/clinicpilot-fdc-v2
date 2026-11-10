@@ -13,6 +13,7 @@ const COUNT_LABELS = [
   ['invoices', 'invoices'],
   ['payments', 'payments'],
   ['appointments', 'appointments'],
+  ['visits', 'visits'],
   ['expenses', 'expenses'],
 ];
 

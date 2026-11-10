@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { formatDate, formatMoney, PAYMENT_METHOD_LABELS } from '../lib/format';
+import { formatDate, formatDateTime, formatDuration, formatMoney, formatTime, PAYMENT_METHOD_LABELS } from '../lib/format';
+import { describeVisitsError, stars } from '../lib/visits';
 import { invoiceNet, invoicePaid, invoiceDue, invoiceStatus, groupPaymentsByInvoice } from '../lib/billing';
 import PatientDrawer from '../components/PatientDrawer';
 import InvoiceForm from '../components/InvoiceForm';
@@ -19,6 +20,8 @@ export default function PatientProfile({ profile }) {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('profile');
+  const [visits, setVisits] = useState(null);
+  const [visitsError, setVisitsError] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [payModalInvoice, setPayModalInvoice] = useState(null);
   const [editInvoice, setEditInvoice] = useState(null);
@@ -45,6 +48,21 @@ export default function PatientProfile({ profile }) {
     setPayments(pay || []);
     setLoading(false);
   }
+
+  // Visit history loads on first open of the Visits tab, so a missing visits
+  // table can never break the rest of the profile.
+  useEffect(() => {
+    if (tab !== 'visits' || visits !== null) return;
+    supabase
+      .from('visits')
+      .select('*')
+      .eq('patient_id', id)
+      .order('checked_in_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) setVisitsError(describeVisitsError(error));
+        setVisits(data || []);
+      });
+  }, [tab, visits, id]);
 
   async function handleDeletePatient() {
     if (!window.confirm(`Delete ${patient.name} and all their records? This cannot be undone.`)) return;
@@ -83,6 +101,7 @@ export default function PatientProfile({ profile }) {
         <div className="tabs">
           <button type="button" className={'tab' + (tab === 'profile' ? ' active' : '')} onClick={() => setTab('profile')}>Profile</button>
           <button type="button" className={'tab' + (tab === 'billing' ? ' active' : '')} onClick={() => setTab('billing')}>Billing</button>
+          <button type="button" className={'tab' + (tab === 'visits' ? ' active' : '')} onClick={() => setTab('visits')}>Visits</button>
         </div>
 
         {tab === 'profile' && (
@@ -91,6 +110,29 @@ export default function PatientProfile({ profile }) {
             <p><strong>Address:</strong> {patient.address || '—'}</p>
             <p><strong>Gender:</strong> {patient.gender || '—'}</p>
             <p><strong>Patient since:</strong> {formatDate(patient.created_at)}</p>
+          </div>
+        )}
+
+        {tab === 'visits' && (
+          <div>
+            {visits === null && <div className="empty-state">Loading…</div>}
+            {visitsError && <p className="form-error">{visitsError}</p>}
+            {visits && visits.length === 0 && !visitsError && <div className="empty-state">No visits recorded yet.</div>}
+            {visits && visits.map((v) => (
+              <div className="checkin-visit" key={v.id}>
+                <div className="checkin-visit__main">
+                  <strong>{formatDateTime(v.checked_in_at)}</strong>
+                  <div className="checkin-muted">{v.reason}</div>
+                  <div className="checkin-muted">
+                    {v.checked_out_at
+                      ? `Out at ${formatTime(v.checked_out_at)} · ${formatDuration(new Date(v.checked_out_at) - new Date(v.checked_in_at))}`
+                      : 'Still checked in'}
+                  </div>
+                  {v.feedback_comment && <div className="checkin-comment">“{v.feedback_comment}”</div>}
+                </div>
+                {v.feedback_rating && <span className="checkin-rating" aria-label={`${v.feedback_rating} out of 5`}>{stars(v.feedback_rating)}</span>}
+              </div>
+            ))}
           </div>
         )}
 
@@ -171,6 +213,7 @@ export default function PatientProfile({ profile }) {
         )}
 
         <div className="pane-foot">
+          <button type="button" className="btn btn-primary" onClick={() => navigate(`/checkin?patient=${patient.id}`)}>Check in</button>
           <button type="button" className="btn btn-secondary" onClick={() => setEditOpen(true)}>Edit Patient</button>
           <button type="button" className="btn btn-danger" onClick={handleDeletePatient}>Delete Patient</button>
         </div>

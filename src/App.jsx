@@ -9,9 +9,11 @@ import Billings from './pages/Billings';
 import Hub from './pages/Hub';
 import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
+import CheckIn from './pages/CheckIn';
 
 const PAGE_TITLES = {
   '/home': 'Home',
+  '/checkin': 'Check-in',
   '/patients': 'Patients',
   '/billings': 'Billings',
   '/hub': 'Hub',
@@ -63,6 +65,7 @@ export default function App() {
           </div>
           <nav className="sidebar-main" aria-label="Primary navigation">
             <NavLink to="/home" className={navClass}><span className="nav-btn__label">Home</span></NavLink>
+            <NavLink to="/checkin" className={navClass}><span className="nav-btn__label">Check-in</span></NavLink>
             <NavLink to="/patients" className={navClass}><span className="nav-btn__label">Patients</span></NavLink>
             <NavLink to="/billings" className={navClass}><span className="nav-btn__label">Billings</span></NavLink>
             {isAdmin && <NavLink to="/hub" className={navClass}><span className="nav-btn__label">Hub</span></NavLink>}
@@ -94,6 +97,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home profile={profile} />} />
+            <Route path="/checkin" element={<CheckIn />} />
             <Route path="/patients" element={<Patients />} />
             <Route path="/patients/:id" element={<PatientProfile profile={profile} />} />
             <Route path="/billings" element={<Billings profile={profile} />} />

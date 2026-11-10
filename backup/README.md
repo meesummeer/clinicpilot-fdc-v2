@@ -87,7 +87,7 @@ Needs Node (already installed for ClinicPilot development). Run the commands fro
 ## Restoring
 
 The backup is plain JSON: one array of rows per table (`patients`, `invoices`, `payments`, `appointments`,
-`expenses`, `patient_notes`, `staff_profiles`, `audit_log`) plus `exported_at`. Download the file from
+`visits`, `expenses`, `patient_notes`, `staff_profiles`, `audit_log`) plus `exported_at`. Download the file from
 Dashboard > R2 and load the arrays back with SQL or a script. Restore is manual and has not been tested yet:
 do one practice restore into a scratch Supabase project before you ever need it for real.
 
