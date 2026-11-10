@@ -1,4 +1,5 @@
-import { Routes, Route, NavLink, Navigate, Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './lib/useAuth';
 import { supabase } from './lib/supabaseClient';
 import Login from './pages/Login';
@@ -10,7 +11,8 @@ import Hub from './pages/Hub';
 import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
 import CheckIn from './pages/CheckIn';
-import { openPortal, portalHref } from './lib/portal';
+import PortalPinModal from './components/PortalPinModal';
+import { isPortalLocked, openPortal, portalHref, unlockPortal } from './lib/portal';
 
 const PAGE_TITLES = {
   '/home': 'Home',
@@ -29,6 +31,8 @@ function pageTitle(pathname) {
 export default function App() {
   const { session, profile, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [pinOpen, setPinOpen] = useState(false);
 
   if (loading) {
     return <div className="auth-loading">Loading ClinicPilot…</div>;
@@ -48,6 +52,12 @@ export default function App() {
     );
   }
 
+  // A tab that has shown the Portal stays on it (reload, typed URL, back
+  // button) until the staff PIN is entered.
+  if (isPortalLocked() && location.pathname !== '/portal') {
+    return <Navigate to="/portal" replace />;
+  }
+
   // The Portal is its own window: no sidebar, so whoever is handed the tablet
   // sees check-in and check-out only. Still needs a signed-in staff account.
   if (location.pathname === '/portal') {
@@ -59,12 +69,22 @@ export default function App() {
             <h1 className="topbar-title">Faseeh Dental Clinic · Portal</h1>
             <div className="topbar-user">
               <span className="topbar-user__name">{profile.full_name}</span>
-              <Link to="/home" className="portal-exit">Open ClinicPilot ›</Link>
+              <button type="button" className="portal-exit" onClick={() => setPinOpen(true)}>Open ClinicPilot ›</button>
             </div>
           </header>
           <div className="workspace">
             <CheckIn portal />
           </div>
+          {pinOpen && (
+            <PortalPinModal
+              onClose={() => setPinOpen(false)}
+              onUnlock={() => {
+                unlockPortal();
+                setPinOpen(false);
+                navigate('/home');
+              }}
+            />
+          )}
         </div>
       </div>
     );

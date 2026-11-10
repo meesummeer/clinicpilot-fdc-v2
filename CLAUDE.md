@@ -98,7 +98,10 @@ push explicitly when a change is ready; don't assume it happens for you.
 
 The sidebar's **Portal** item opens `/portal` in its own named window with no
 sidebar (names are not links there, so a patient holding the tablet can't
-wander into billing). `/checkin` redirects to it. The portal scans a patient QR (jsQR, works on Android Chrome and iPad Safari;
+wander into billing). `/checkin` redirects to it. A tab that has shown the Portal stays locked to it
+(sessionStorage flag) until the staff PIN is entered (`PORTAL_PIN` in
+`src/lib/portal.js` — in the page code, so a casual-tap lock only; real
+lock-down is iPad Guided Access / Android screen pinning). The portal scans a patient QR (jsQR, works on Android Chrome and iPad Safari;
 needs HTTPS) and records a row in `visits` (`supabase/04_visits.sql`). Visit
 times are stamped by the database clock via trigger, never the tablet's; one
 open visit per patient is enforced by a unique index. Add any new table to

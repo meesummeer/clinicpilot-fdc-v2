@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import QrScanner from '../components/QrScanner';
+import { lockPortal } from '../lib/portal';
 import PatientPicker from '../components/PatientPicker';
 import { PROCEDURE_SUGGESTIONS } from '../lib/procedures';
 import { formatDuration, formatTime, karachiDayRange, todayKarachi } from '../lib/format';
@@ -285,6 +286,11 @@ export default function CheckIn({ portal = false }) {
 
   openRef.current = open;
   panelRef.current = panel;
+
+  // Showing the Portal locks this tab to it until the staff PIN is entered.
+  useEffect(() => {
+    if (portal) lockPortal();
+  }, [portal]);
 
   const load = useCallback(async () => {
     const [o, c] = await Promise.all([fetchOpenVisits(), fetchClosedToday()]);
