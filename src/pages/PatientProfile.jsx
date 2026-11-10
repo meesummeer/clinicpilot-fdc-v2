@@ -66,6 +66,21 @@ export default function PatientProfile({ profile }) {
       });
   }, [tab, visits, id]);
 
+  // Visit deletes are written to audit_log by the database (rating and comment
+  // included). RLS can refuse a delete without an error, so confirm a row went.
+  async function handleDeleteVisit(visit) {
+    const extra = visit.feedback_rating || visit.feedback_comment ? ' and its feedback' : '';
+    if (!window.confirm(`Delete this visit${extra}? This cannot be undone.`)) return;
+    const { data, error } = await supabase.from('visits').delete().eq('id', visit.id).select('id');
+    if (error) { alert(error.message); return; }
+    if (!data?.length) {
+      alert('Nothing was deleted. The visit may already be gone, or you may not have permission.');
+      setVisits(null); // reload the real list
+      return;
+    }
+    setVisits((list) => (list || []).filter((v) => v.id !== visit.id));
+  }
+
   async function handleDeletePatient() {
     if (!window.confirm(`Delete ${patient.name} and all their records? This cannot be undone.`)) return;
     const { error } = await supabase.from('patients').delete().eq('id', patient.id);
@@ -136,6 +151,7 @@ export default function PatientProfile({ profile }) {
                   {v.feedback_comment && <div className="checkin-comment">“{v.feedback_comment}”</div>}
                 </div>
                 {v.feedback_rating && <span className="checkin-rating" aria-label={`${v.feedback_rating} out of 5`}>{stars(v.feedback_rating)}</span>}
+                <button type="button" className="btn btn-danger btn-small" onClick={() => handleDeleteVisit(v)}>Delete</button>
               </div>
             ))}
           </div>
